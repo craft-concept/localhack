@@ -11,6 +11,8 @@ declare interface Array<T> {
   to<V>(fn: (item: this) => V): V
 }
 
-Object.prototype.to = function to(fn) {
-  return fn(this)
-}
+Object.defineProperty(Object.prototype, "to", {
+  value: function to(fn: any) {
+    return fn(this)
+  },
+})

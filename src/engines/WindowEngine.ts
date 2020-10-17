@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron"
 import * as path from "path"
-import { Engine, map, push, Update, mut, toggle, always } from "../lib"
+import { Engine, map, push, Update, toggle, always, index } from "../lib"
 
 export type WindowId = string & { __type: "WindowId" }
 
@@ -14,16 +14,18 @@ export interface WindowDesc extends OpenReq {
   id: WindowId
 }
 
+const Windows = index((win: WindowDesc) => win.id, always)
+
 export interface State {
   isReady: boolean
-  windows: { [id: string]: WindowDesc }
+  windows: typeof Windows.Index
   opening: OpenReq[]
   closing: WindowId[]
 }
 
 export const init = (): State => ({
   isReady: false,
-  windows: {},
+  windows: Windows.init(),
   opening: [],
   closing: [],
 })
@@ -40,11 +42,7 @@ export const update: Update<Action, State> = (action: Action) => {
     case "WindowsOpened": {
       return map({
         opening: always([]),
-        windows: mut(all => {
-          for (const win of action.opened) {
-            all[win.id] = win
-          }
-        }),
+        windows: Windows.add(...action.opened),
       })
     }
 
@@ -54,20 +52,17 @@ export const update: Update<Action, State> = (action: Action) => {
 }
 
 export const engine: Engine<Action, State> = dispatch => {
-  const handles: { [id: string]: BrowserWindow } = {}
+  app.on("activate", onActivate)
+  app.whenReady().then(onReady)
 
-  app.on("activate", () => {
-    dispatch({ type: "AppActivated" })
-  })
+  function cleanup() {
+    app.off("activate", onActivate)
+  }
 
-  app.whenReady().then(() => {
-    dispatch({ type: "AppReady" })
-  })
+  return ({ isReady, closing, opening }) => {
+    if (!isReady) return
 
-  return state => {
-    if (!state.isReady) return
-
-    const opened = state.opening.map(req => {
+    const opened = opening.map(req => {
       const win = new BrowserWindow({
         ...req,
         webPreferences: {
@@ -89,13 +84,22 @@ export const engine: Engine<Action, State> = dispatch => {
       }
     })
 
-    const closing = state.closing.map(id => {
-      handles[id].close()
-      return id
-    })
+    for (const id of closing) {
+      BrowserWindow.fromId(Number(id))?.close()
+    }
 
     if (opened.length > 0) dispatch({ type: "WindowsOpened", opened })
     if (closing.length > 0) dispatch({ type: "WindowsClosing", ids: closing })
+
+    return cleanup
+  }
+
+  function onActivate() {
+    dispatch({ type: "AppActivated" })
+  }
+
+  function onReady() {
+    dispatch({ type: "AppReady" })
   }
 }
 

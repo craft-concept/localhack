@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2019", "dom"],
+    "target": "es2017",
+    "moduleResolution": "node"
+  }
+}
