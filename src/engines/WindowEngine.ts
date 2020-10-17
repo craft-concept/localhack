@@ -71,7 +71,7 @@ export const engine: Engine<Action, State> = dispatch => {
       const win = new BrowserWindow({
         ...req,
         webPreferences: {
-          preload: path.join(__dirname, "../apps/ui/preload.js"),
+          preload: path.join(__dirname, "../apps/ui/preload.ts"),
         },
       })
 
