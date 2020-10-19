@@ -1,18 +1,18 @@
 import { makeFn } from "./fns"
 
-export interface Fn<P, O = void> {
-  (input: Data<P>): Data<O>
-  pattern: P
+export interface Fn<I, O = void> {
+  (input: Data<I>): Data<O>
+  input: I
   output: O
 }
 
-export function fn<P, O = void>(
-  pattern: P,
-  f: (value: Data<P>) => Data<O>,
+export function fn<I, O = void>(
+  input: I,
+  f: (value: Data<I>) => Data<O>,
   output?: O,
-): Fn<P, O> {
-  return makeFn<Fn<P, O>>(f, {
-    pattern,
+): Fn<I, O> {
+  return makeFn<Fn<I, O>>(f, {
+    input,
     output,
   })
 }

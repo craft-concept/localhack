@@ -1,1 +1,3 @@
-// TODO(jeff): make a cli entry point
+require("ts-node").register()
+require("../../hacks")
+require("./main.ts")

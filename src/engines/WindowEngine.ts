@@ -64,9 +64,14 @@ export const engine: Engine<Action, State> = dispatch => {
 
     const opened = opening.map(req => {
       const win = new BrowserWindow({
-        ...req,
+        ...req.options,
         webPreferences: {
+          ...req.options?.webPreferences,
           preload: path.join(__dirname, "../apps/ui/preload.ts"),
+
+          // TODO(jeff): After switching to ES6 modules, this should be fixable
+          worldSafeExecuteJavaScript: false,
+          contextIsolation: false,
         },
       })
 
