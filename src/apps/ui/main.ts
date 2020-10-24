@@ -1,4 +1,4 @@
-import { make, pipe, Update } from "../../lib"
+import { pipe, Update } from "../../lib"
 import * as WindowEngine from "../../engines/WindowEngine"
 
 export type Action = WindowEngine.Action
@@ -23,12 +23,6 @@ export const update: Update<Action, State> = action => {
 
   return WindowEngine.update(action)
 }
-
-make({
-  init,
-  update,
-  engine,
-})
 
 // // Quit when all windows are closed, except on macOS. There, it's common
 // // for applications and their menu bar to stay active until the user quits

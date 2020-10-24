@@ -2,6 +2,8 @@
   "compilerOptions": {
     "lib": ["ES2019", "dom", "es2015"],
     "target": "es2017",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "baseUrl": "."
   }
 }

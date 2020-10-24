@@ -5,6 +5,9 @@
   "author": "Jeff Peterson <jeff@yak.sh>",
   "license": "MIT",
   "main": "src/apps/ui/main.js",
+  "bin": {
+    "localhack": "src/apps/cli/main.js"
+  },
   "scripts": {
     "start": "electron ."
   },

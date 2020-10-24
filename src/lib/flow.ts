@@ -2,16 +2,18 @@ export type Dispatch<A> = (action: A) => void
 export type Dispatcher<A, S> = (action?: A) => S
 export type Init<S> = () => S
 
-export type Cleanup = () => void
+export type Cleanup = () => void | Promise<void>
 
 export type Props<A, S> = {
   state: S
   dispatch: Dispatch<A>
 }
 
+export type Listener<S> = (state: S) => void | Cleanup | Promise<void | Cleanup>
+
 export type Engine<A, S> = (
   dispatch: Dispatch<A>,
-) => (state: S) => void | Cleanup
+) => Listener<S> | Promise<Listener<S>>
 
 export type Transform<S> = (state: S) => S
 export type Update<A, S> = (action: A) => Transform<S> | undefined
@@ -44,7 +46,7 @@ export function make<A, S>(plugin: Plugin<A, S>): Store<A, S> {
     dispatch,
   }
 
-  const engine = plugin.engine?.(store.dispatch)
+  const listener = makeListener(plugin.engine?.(store.dispatch))
 
   function dispatch(action?: A): S {
     if (store.dispatching) throw new Error("Already dispatching.")
@@ -55,10 +57,28 @@ export function make<A, S>(plugin: Plugin<A, S>): Store<A, S> {
       store.dispatching = false
     }
 
-    engine(state)
+    listener(state)
 
     return state
   }
 
   return store
+}
+
+export function makeListener<S>(
+  listener: Listener<S> | Promise<Listener<S>>,
+): Listener<S> {
+  if (typeof listener === "function") return listener
+
+  let prevState: any = undefined
+  let onState = (state: any) => {
+    prevState = state
+  }
+
+  listener.then(cb => {
+    onState = cb
+    prevState !== undefined && onState(prevState)
+  })
+
+  return state => onState(state)
 }

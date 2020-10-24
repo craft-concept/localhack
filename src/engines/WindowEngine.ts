@@ -1,5 +1,5 @@
 import { app, BrowserWindow } from "electron"
-import * as path from "path"
+import * as Path from "path"
 import { Engine, map, push, Update, toggle, always, index } from "../lib"
 
 export type WindowId = string & { __type: "WindowId" }
@@ -67,7 +67,7 @@ export const engine: Engine<Action, State> = dispatch => {
         ...req.options,
         webPreferences: {
           ...req.options?.webPreferences,
-          preload: path.join(__dirname, "../apps/ui/preload.ts"),
+          preload: Path.join(__dirname, "../apps/ui/preload.ts"),
 
           // TODO(jeff): After switching to ES6 modules, this should be fixable
           worldSafeExecuteJavaScript: false,
