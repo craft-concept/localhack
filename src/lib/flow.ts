@@ -49,7 +49,10 @@ export function make<A, S>(plugin: Plugin<A, S>): Store<A, S> {
   const listener = makeListener(plugin.engine?.(store.dispatch))
 
   function dispatch(action?: A): S {
-    if (store.dispatching) throw new Error("Already dispatching.")
+    if (store.dispatching)
+      throw new Error(
+        `Already dispatching. Dispatching ${JSON.stringify(action)}`,
+      )
 
     if (action != null) {
       store.dispatching = true

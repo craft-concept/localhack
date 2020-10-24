@@ -1,8 +1,5 @@
-import { Engine, Update, identity, set, map, makeListener } from "../../lib"
+import { Engine, Update, identity, map, makeListener } from "../../lib"
 import * as Persist from "../../engines/PersistEngine"
-
-// const [cmd, ...args] = process.argv
-// require(`./cmd/${cmd}`).default(...args)
 
 export type Action =
   | { type: "Start" }
@@ -48,7 +45,7 @@ export const update: Update<Action, State> = action => {
   }
 }
 
-const persistEngine = Persist.engine(".localhack/data.json")
+const persistEngine = Persist.engine(".localhack/data")
 
 export const engine: Engine<Action, State> = async dispatch => {
   const persistListener = makeListener(

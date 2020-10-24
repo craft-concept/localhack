@@ -1,5 +1,6 @@
 import * as Path from "path"
 import { promises as Fs } from "fs"
+import { parse, stringify } from "yaml"
 import { Engine, Update, identity, set, map, always } from "../lib"
 
 export type Action<Data> =
@@ -42,13 +43,13 @@ export const update: Update<Action<any>, State<any>> = action => {
 export const engine = (
   relativePath: string,
 ): Engine<Action<any>, State<any>> => async dispatch => {
-  const path = Path.join(process.cwd(), relativePath)
+  const path = Path.join(process.cwd(), relativePath + ".yml")
 
   await Fs.mkdir(Path.dirname(path), { recursive: true })
   try {
     await Fs.readFile(path)
       .then(String)
-      .then(JSON.parse)
+      .then(parse)
       .then(data => dispatch({ type: "DataLoaded", data }))
   } catch {
     dispatch({ type: "NoData" })
@@ -61,7 +62,7 @@ export const engine = (
     prev = data
 
     dispatch({ type: "DataSaving", data })
-    await Fs.writeFile(path, JSON.stringify(data))
+    await Fs.writeFile(path, stringify(data))
     dispatch({ type: "DataSaved" })
   }
 }
