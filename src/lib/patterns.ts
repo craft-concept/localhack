@@ -1,10 +1,23 @@
 import { makeFn } from "./fns"
 
+export type OneOf<Opts extends any[]> = {
+  __type: "OneOf"
+  opts: Opts
+}
+
 export const T = {
-  Any: { __type: "any" as "any" },
-  String: { __type: "string" as "string" },
-  Number: { __type: "number" as "number" },
-  Boolean: { __type: "boolean" as "boolean" },
+  Any: { __type: "any" as const },
+
+  String: { __type: "string" as const },
+  Number: { __type: "number" as const },
+  Boolean: { __type: "boolean" as const },
+
+  Tup: <As extends any[]>(...rest: As): As => rest,
+  Array: <T>(item: T): [T] => [item],
+  OneOf: <Opts extends any[]>(...opts: Opts): OneOf<Opts> => ({
+    __type: "OneOf",
+    opts,
+  }),
 }
 
 /**
@@ -42,6 +55,8 @@ export interface PatternObj {
   [name: string]: Pattern
 }
 
+export type TupleUnion<T> = T extends Array<infer E> ? E : never
+
 /**
  * `Data<typeof pattern>` evaluates to the proper TS type for data that
  * matches the given pattern.
@@ -54,9 +69,17 @@ export type Data<P> = P extends string | number | boolean
   ? number
   : P extends typeof T.Boolean
   ? boolean
-  : P extends Array<infer T>
-  ? T[]
-  : P extends object
+  : P extends typeof T.Any
+  ? any
+  : P extends OneOf<infer Args> // OneOf<T>
+  ? TupleUnion<Data<Args>>
+  : P extends [infer T] // 1-Tuple
+  ? [Data<T>]
+  : P extends [infer A, ...infer B] // N-Tuple
+  ? [Data<A>, ...Data<B>]
+  : P extends Array<infer T> // Arrays
+  ? Data<T>[]
+  : P extends object // Objects
   ? { [K in keyof P]: Data<P[K]> }
   : void
 
@@ -77,7 +100,7 @@ export function fn<I, O = void>(
   f: (value: Data<I>) => Data<O>,
   output?: O,
 ): Fn<I, O> {
-  return makeFn<Fn<I, O>>(f, {
+  return makeFn(f, {
     input,
     output,
   })
