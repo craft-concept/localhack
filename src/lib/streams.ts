@@ -1,6 +1,6 @@
 import { Stream, producerStream } from "@funkia/hareactive"
 
-export { Stream, producerStream as produce }
+export { Future, Stream, producerStream as produce } from "@funkia/hareactive"
 
 export type Listener<Args extends any[]> = (...args: Args) => void
 

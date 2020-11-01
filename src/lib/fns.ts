@@ -1,8 +1,8 @@
-export function makeFn<F extends Function>(
-  fn: Function,
-  { name, ...props }: Partial<F>,
-): F {
-  const fn2: any = copyFn(fn, name)
+export function makeFn<F extends Function, F2>(
+  fn: F,
+  props: Partial<F2>,
+): F & F2 {
+  const fn2: any = copyFn(fn, (props as any).name)
   return Object.assign(fn2, props)
 }
 
