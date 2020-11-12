@@ -1,39 +1,55 @@
 import { makeFn } from "./fns"
 
-export type OneOf<Opts extends any[]> = {
-  __type: "OneOf"
-  opts: Opts
-}
+export namespace T {
+  export const Any = { __type: "any" } as Any
+  export const String = { __type: "string" } as String
+  export const Number = { __type: "number" } as Number
+  export const Boolean = { __type: "boolean" } as Boolean
 
-export const T = {
-  Any: { __type: "any" as const },
-
-  String: { __type: "string" as const },
-  Number: { __type: "number" as const },
-  Boolean: { __type: "boolean" as const },
-
-  Tup: <As extends any[]>(...rest: As): As => rest,
-  Array: <T>(item: T): [T] => [item],
-  OneOf: <Opts extends any[]>(...opts: Opts): OneOf<Opts> => ({
+  export const Tup = <As extends any[]>(...rest: As): As => rest
+  export const Array = <T>(item: T): [T] => [item]
+  export const OneOf = <Opts extends any[]>(...opts: Opts): OneOf<Opts> => ({
     __type: "OneOf",
     opts,
-  }),
-}
+  })
 
-/**
- * A "logic variable". Used to express equality within patterns.
- */
-export type LVar = { __type: "lvar"; name: string; pattern?: Pattern }
-export const lvar = (name: string, pattern: Pattern = T.Any): LVar => ({
-  __type: "lvar",
-  name,
-  pattern,
-})
+  export interface Any {
+    __type: "any"
+  }
+  export interface String {
+    __type: "string"
+  }
+  export interface Number {
+    __type: "number"
+  }
+  export interface Boolean {
+    __type: "boolean"
+  }
+  export interface OneOf<Opts extends any[]> {
+    __type: "OneOf"
+    opts: Opts
+  }
+
+  /**
+   * A "logic variable". Used to express equality within patterns.
+   */
+  export interface Var {
+    __type: "var"
+    name: string
+    pattern?: Pattern
+  }
+
+  export const Var = (name: string, pattern: Pattern = T.Any): Var => ({
+    __type: "var",
+    name,
+    pattern,
+  })
+}
 
 export type Type = keyof TypeMap
 
 export interface TypeMap {
-  lvar: LVar
+  lvar: T.Var
   string: string
   number: number
   boolean: boolean
@@ -41,12 +57,7 @@ export interface TypeMap {
   pattern: Pattern
 }
 
-export type PatternType =
-  | LVar
-  | typeof T.Any
-  | typeof T.String
-  | typeof T.Number
-  | typeof T.Boolean
+export type PatternType = T.Var | T.Any | T.String | T.Number | T.Boolean
 
 export type PatternValue = string | number | boolean
 export type Pattern = PatternValue | PatternType | Pattern[] | PatternObj
@@ -63,15 +74,15 @@ export type TupleUnion<T> = T extends Array<infer E> ? E : never
  */
 export type Data<P> = P extends string | number | boolean
   ? P
-  : P extends typeof T.String
+  : P extends T.String
   ? string
-  : P extends typeof T.Number
+  : P extends T.Number
   ? number
-  : P extends typeof T.Boolean
+  : P extends T.Boolean
   ? boolean
-  : P extends typeof T.Any
+  : P extends T.Any
   ? any
-  : P extends OneOf<infer Args> // OneOf<T>
+  : P extends T.OneOf<infer Args> // OneOf<T>
   ? TupleUnion<Data<Args>>
   : P extends [infer T] // 1-Tuple
   ? [Data<T>]
@@ -110,9 +121,6 @@ export interface Matcher<T extends Pattern> {
   (data: any): data is Data<T>
 }
 
-export const isType = (pattern: Pattern): pattern is PatternType =>
-  pattern && typeof pattern === "object" && "__type" in pattern
-
 export const match = <T extends Pattern>(pattern: T): Matcher<T> => {
   if (isType(pattern)) return matchType(pattern)
   if (Array.isArray(pattern)) throw new Error("Can't match arrays yet.")
@@ -128,6 +136,25 @@ export const match = <T extends Pattern>(pattern: T): Matcher<T> => {
       return matchObject(pattern as any)
   }
 }
+
+export interface Transformer<I, O> {
+  (item: Data<I>): Data<O>
+  <T>(item: T): T
+}
+
+export const transform = <I extends Pattern, O extends Pattern>(
+  fn: Fn<I, O>,
+): Transformer<I, O> => {
+  const input = match(fn.input)
+
+  return (item: any) => {
+    if (input(item)) return fn(item)
+    return item
+  }
+}
+
+export const isType = (pattern: Pattern): pattern is PatternType =>
+  pattern && typeof pattern === "object" && "__type" in pattern
 
 export const matchObject = <T extends PatternObj>(pattern: T): Matcher<T> => (
   data: any,
@@ -147,7 +174,7 @@ export const matchType = <T extends PatternType>(pattern: T): Matcher<T> => {
     case "any":
       return (_data: any): _data is Data<T> => true
 
-    case "lvar":
+    case "var":
       return match((pattern as any).pattern)
 
     default:
