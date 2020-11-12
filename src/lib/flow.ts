@@ -18,6 +18,30 @@ export type Engine<A, S> = (
 export type Transform<S> = (state: S) => S
 export type Update<A, S> = (action: A) => Transform<S> | undefined
 
+export type ActionOf<T> = T extends
+  | Dispatch<infer A>
+  | Props<infer A, any>
+  | Plugin<infer A, any>
+  | Dispatcher<infer A, any>
+  | Engine<infer A, any>
+  | Store<infer A, any>
+  | Update<infer A, any>
+  ? A
+  : never
+
+export type StateOf<T> = T extends
+  | Init<infer S>
+  | Listener<infer S>
+  | Transform<infer S>
+  | Plugin<any, infer S>
+  | Props<any, infer S>
+  | Dispatcher<any, infer S>
+  | Engine<any, infer S>
+  | Store<any, infer S>
+  | Update<any, infer S>
+  ? S
+  : never
+
 export interface Plugin<A, S> {
   init: Init<S>
   update: Update<A, S>
