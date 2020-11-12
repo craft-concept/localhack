@@ -15,6 +15,12 @@
   // 	],
   // 	"description": "Log output to console"
   // }
+  "Import React": {
+    "scope": "typescriptreact",
+    "prefix": "react",
+    "description": "import React",
+    "body": ["import * as React from \"react\""]
+  },
   "New Engine": {
     "scope": "typescript",
     "prefix": "eng",
