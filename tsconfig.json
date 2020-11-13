@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
+    "strict": true,
     "lib": ["ES2019", "dom", "es2015"],
     "target": "es2017",
     "moduleResolution": "node",
     "module": "commonjs",
-    "baseUrl": "."
+    "jsx": "react",
+    "jsxFactory": "h"
   }
 }
