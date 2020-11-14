@@ -38,6 +38,7 @@ export const windows = dispatch => {
 
           // TODO(jeff): After switching to ES6 modules, this should be fixable
           worldSafeExecuteJavaScript: false,
+          nodeIntegration: true,
           contextIsolation: false,
         },
       })

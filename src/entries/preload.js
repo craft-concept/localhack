@@ -10,3 +10,6 @@ window.addEventListener("DOMContentLoaded", () => {
     replaceText(`${type}-version`, process.versions[type])
   }
 })
+
+// Hack to prevent exports assignment from failing.
+window.exports = {}

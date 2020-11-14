@@ -5,11 +5,12 @@
     "checkJs": true,
     "lib": ["ES2019", "dom", "es2015"],
     "target": "es2017",
+    "module": "es2015",
     "moduleResolution": "node",
-    "module": "CommonJS",
     "jsx": "react",
     "jsxFactory": "h",
-    "outDir": "build"
+    "outDir": "build",
+    "plugins": [{ "name": "typescript-lit-html-plugin" }]
   },
   "compileOnSave": true,
   "include": ["src"],
