@@ -1,16 +1,18 @@
 import { standard, trace } from "../lib/sift/plugins/std"
-import * as windows from "../lib/sift/plugins/windows"
+import { windows } from "../lib/sift/plugins/windows"
 
 const dispatch = standard()
 
 dispatch({
-  plugins: [windows.update, windows.engine(dispatch), trace],
+  plugins: [windows(dispatch), trace],
 })
 
 dispatch({
-  openWindow: {
-    src: "index.html",
-    openDevtools: true,
-    options: {},
-  },
+  openWindows: [
+    {
+      src: "index.html",
+      openDevtools: true,
+      options: {},
+    },
+  ],
 })
