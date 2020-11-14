@@ -1,3 +1,4 @@
+export { produce } from "immer"
 import { Transform } from "./flow"
 
 export const identity = <T>(x: T): T => x
@@ -7,7 +8,7 @@ export const tap = <T, R extends any[] = []>(
 ) => (x: T, ...rest: R) => (fn(x, ...rest), x)
 export const each = <T>(fn: (x: T) => void) => tap<T[]>(xs => xs.forEach(fn))
 
-export const set = <T, S extends T>(partial: T): Transform<S> => state => {
+export const set = <S>(partial: Partial<S>): Transform<S> => state => {
   const res = partial as S
   const out = {} as S
   for (const k in state) {
@@ -28,9 +29,9 @@ export type KeyMap<T> = {
   [K in keyof T]: (v: T[K]) => T[K]
 }
 
-export const edit = <T, S extends T>(
-  editFn: (state: S) => T,
-): Transform<S> => state => set<T, S>(editFn(state))(state)
+export const edit = <S>(
+  editFn: (state: S) => Partial<S>,
+): Transform<S> => state => set<S>(editFn(state))(state)
 
 export const mut = <T extends object | any[]>(mutFn: (item: T) => void) => (
   item: T,
@@ -69,7 +70,23 @@ export const mapWhen = <T>(pred: (item: T) => boolean, fn: (item: T) => T) => (
 export const apply = <T>(v: T, applyFn?: (v: T) => T) => applyFn?.(v) ?? v
 export const toggle = (v: boolean) => !v
 
-export const pipe = <T>(...pipeFns: Transform<T>[]) => (val: T): T =>
-  pipeFns.reduce(apply, val)
+export const pipe = <T>(...pipeFns: (Transform<T> | undefined)[]) => (
+  val: T,
+): T => pipeFns.reduce(apply, val)
 
 export const push = <T>(...vals: T[]) => (list: T[]) => [...list, ...vals]
+
+export async function tests() {
+  const { deepEqual, test } = await import("../lib/testing")
+
+  type T = { a: number; b: number }
+  const init: T = { a: 1, b: 2 }
+
+  test({ a: 1, b: 2 }).eq(set({ a: 3 }))
+
+  deepEqual(set({ a: 3 })(init), { a: 1, b: 2 })
+
+  // deepEqual(edit())
+
+  deepEqual(push(3, 4)([1, 2]), [1, 2, 3, 4])
+}

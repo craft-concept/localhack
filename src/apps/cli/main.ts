@@ -20,7 +20,7 @@ export const init = (): State => ({
 })
 
 export const update: Update<Action, State> = action => {
-  console.log(action)
+  // console.log(action)
 
   switch (action.type) {
     case "Start":
@@ -35,6 +35,16 @@ export const update: Update<Action, State> = action => {
           return map({
             persist: map({ data: map({ counter: (x: number) => x + 1 }) }),
           })
+
+        case "test":
+          // HACK: move to engine
+          import("path")
+            .then(
+              ({ resolve }) => import(resolve(process.cwd(), action.args[0])),
+            )
+            .then(mod => mod.tests())
+
+          return identity
 
         default:
           throw new Error(`Sub-command ${action.cmd} not found`)

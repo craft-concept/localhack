@@ -1,6 +1,23 @@
-import { T } from "./patterns"
-import { v4 as uuid } from "uuid"
-import { makeFn } from "./fns"
+import produce, { enableMapSet } from "immer"
+
+/** Enable immer Map and Set support. */
+enableMapSet()
+
+/** Easily make a function with attached properties. */
+export function makeFn(fn, { name, ...props }) {
+  return Object.assign(copyFn(fn, name), props)
+}
+
+/**
+ * Duplicates a function, preserving its name and properties.
+ */
+export function copyFn(fn, name = fn.name) {
+  function clone(...args) {
+    return fn.apply(this, args)
+  }
+  Object.defineProperty(clone, "name", { value: name })
+  return Object.assign(clone, fn)
+}
 
 export const identity = x => x
 export const nop = x => {}
@@ -81,49 +98,13 @@ export const mapRes = res => {
   }
 }
 
-/**
- * Makes the previous state available. More of a simple plugin example than a
- * useful thing.
- */
-export const previous = plugin(
-  { name: "previous", input: T.Any },
-  input => state => {
-    state.previous = produce(original(state), set({ previous: null }))
-  },
-)
-
-/**
- * Plugin that decorates the input with some additional metadata.
- */
-export const metadata = plugin("metadata", input => {
-  input.id ??= uuid()
-  input.ts ??= Date.now()
-})
-
-/**
- * Plugin that allows aliasing this input as an alias field
- */
-export const alias = plugin("alias", input => {
-  if (input.alias) return set({ [input.alias]: input })
-})
-
-export const plugins = plugin("plugins", input => state => {
-  if (input.plugin) state.plugins.push(input.plugin)
-  if (input.plugins) state.plugins.push(...input.plugins)
-  if (state.plugins) return runPlugins(state.plugins)(input)(state)
-})
-
-/** The initial state of all  instances. */
-export const init = {
-  session: { id: uuid() },
-  plugins: [metadata, alias, previous],
-}
-
 /** Make a dispatcher. Call it to add plugins, etc. */
-export const make = () => {
-  let state = init
+export const make = (state, step) => {
   return function dispatch(input) {
-    if (input !== undefined) state = produce(state, plugins(input))
+    if (input !== undefined) {
+      const fn = step(input)
+      if (fn) state = produce(state, fn)
+    }
     return state
   }
 }

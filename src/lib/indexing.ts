@@ -45,7 +45,7 @@ export const index = <T, Cache = T>(
   derive: Derive<T>,
   merge: Merge<T, Cache> = always as any,
 ) =>
-  makeFn<Indexer<T, Cache>>((x: T) => x, {
+  makeFn((x: T) => x, {
     derive,
     merge,
     init: () => ({}),

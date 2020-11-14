@@ -17,7 +17,7 @@ function def(defs) {
 
 const root = {}
 
-module.exports = def.call(root, {
+export const precursor = def.call(root, {
   def,
 
   get precursor() {

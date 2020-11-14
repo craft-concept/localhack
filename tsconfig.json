@@ -1,11 +1,17 @@
 {
   "compilerOptions": {
-    "strict": true,
+    "strictNullChecks": true,
+    "allowJs": true,
+    "checkJs": true,
     "lib": ["ES2019", "dom", "es2015"],
     "target": "es2017",
     "moduleResolution": "node",
-    "module": "commonjs",
+    "module": "CommonJS",
     "jsx": "react",
-    "jsxFactory": "h"
-  }
+    "jsxFactory": "h",
+    "outDir": "build"
+  },
+  "compileOnSave": true,
+  "include": ["src"],
+  "exclude": ["**/local.*", "**/*.local.*"]
 }
