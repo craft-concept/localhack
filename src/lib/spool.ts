@@ -11,7 +11,7 @@ export type Spool<S, D extends SpoolDesc<S>> = {
 export function spool<S, D extends SpoolDesc<S>>(
   desc: D,
 ): (init: S) => Spool<S, D> {
-  function Spool(v: S): Spool<S, D> {
+  function Spool(v: S) {
     if (!(this instanceof Spool)) return new (Spool as any)(v)
 
     this.v = v

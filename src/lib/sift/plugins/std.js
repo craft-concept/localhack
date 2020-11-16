@@ -30,10 +30,33 @@ export const alias = plugin("alias", input => {
  * each step.
  */
 export const plugins = plugin("plugins", input => state => {
-  if (input.plugin) state.plugins.push(input.plugin)
-  if (input.plugins) state.plugins.push(...input.plugins)
-  if (state.plugins) return runPlugins(state.plugins)(input)(state)
+  state.plugins ??= [metadata, alias]
+
+  if (!input.plugins) return runPlugins(state.plugins)(input)(state)
+
+  const { add, remove, before, after } = input.plugins
+
+  if (add) state.plugins.push(...add)
+
+  for (const plug of remove ?? []) {
+    const idx = state.plugins.indexOf(plug)
+    if (idx >= 0) state.plugins.splice(idx, 1)
+  }
+
+  if (before) runPlugins(before)(input)(state)
+  runPlugins(state.plugins)(input)(state)
+  if (after) runPlugins(after)(input)(state)
+
+  return state
 })
+
+export const engines = dispatch =>
+  plugin("engines", ({ engines }) => state => {
+    if (!engines) return
+    const { add } = engines
+
+    if (add) state.plugins.push(...add.map(f => f(dispatch)))
+  })
 
 /**
  * Plugin that logs the input objects.
@@ -42,13 +65,7 @@ export const trace = plugin("trace", input => {
   console.log("input:", input)
 })
 
-/** Plugin that sets the default initial state. */
-export const init = input => state => {
-  state.session ??= { id: uuid() }
-  state.plugins ??= [metadata, alias]
-}
-
 /**
  * A sift instance configured with the standard plugins.
  */
-export const standard = (state = {}) => make(produce(state, init({})), plugins)
+export const standard = (state = {}) => make(plugins, state)

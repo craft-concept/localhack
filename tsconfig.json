@@ -2,10 +2,10 @@
   "compilerOptions": {
     "strictNullChecks": true,
     "allowJs": true,
-    "checkJs": true,
+    // "checkJs": true,
     "lib": ["ES2019", "dom", "es2015"],
     "target": "es2017",
-    "module": "es2015",
+    "module": "es2020",
     "moduleResolution": "node",
     "jsx": "react",
     "jsxFactory": "h",

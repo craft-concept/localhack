@@ -4,7 +4,7 @@ import { windows } from "../lib/sift/plugins/windows"
 const dispatch = standard()
 
 dispatch({
-  plugins: [windows(dispatch), trace],
+  plugins: { add: [windows(dispatch), trace] },
 })
 
 dispatch({
