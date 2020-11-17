@@ -1,4 +1,4 @@
-import { makeFn } from "./fns"
+import { makeFn } from "./fns.mjs"
 
 export namespace T {
   export const Any = { __type: "any" } as Any

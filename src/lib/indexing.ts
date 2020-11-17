@@ -1,7 +1,7 @@
 // /** An Index of records of type T. */
 // export interface Index<T> {}
 
-import { makeFn } from "./fns"
+import { makeFn } from "./fns.mjs"
 import { always, map, mapValues } from "./edit"
 
 // export type Indexer<T> = (item: T) => string

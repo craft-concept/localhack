@@ -16,9 +16,9 @@ export const throws = (err, fn) => {
     fn()
   } catch (e) {
     if (!(e instanceof err)) throw e
+    log(".")
   }
-
-  log(".")
+  strict.fail(`Expected to throw ${err.name}`)
 }
 
 if (process.env.NODE_ENV === "test") log("\nRunning tests...\n\n")

@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid"
-import { original, current, isDraft } from "immer"
+import { current, original } from "./core.mjs"
 
 /**
  * Makes the previous state available. More of a simple plugin example than a
@@ -22,7 +22,7 @@ export const alias = input => {
 
 /** Plugin that logs the input objects. */
 export const trace = input => {
-  console.log("input:", isDraft(input) ? current(input) : input)
+  console.log("input:", current(input))
 }
 
 /** The standard set of plugins. */

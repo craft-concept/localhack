@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron"
 import * as Path from "path"
-import * as project from "../../project"
+import * as project from "../../project.mjs"
 import { plugin } from "../core.mjs"
 
 export const windows = dispatch => {
