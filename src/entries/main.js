@@ -1,4 +1,4 @@
-import { standard, trace } from "../lib/sift/plugins/std"
+import { standard, trace } from "../lib/sift/std.mjs"
 import { windows } from "../lib/sift/plugins/windows"
 
 const dispatch = standard()

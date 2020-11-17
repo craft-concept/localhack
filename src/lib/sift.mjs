@@ -1,5 +1,5 @@
 /** The core of Sift. Contains the inner loops. */
-export * from "./core"
+export * from "./sift/core.mjs"
 
 /** The standard built-in plugins. */
-export * from "./plugins/std"
+export * from "./sift/std.mjs"

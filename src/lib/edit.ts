@@ -77,7 +77,7 @@ export const pipe = <T>(...pipeFns: (Transform<T> | undefined)[]) => (
 export const push = <T>(...vals: T[]) => (list: T[]) => [...list, ...vals]
 
 export async function tests() {
-  const { deepEqual, test } = await import("../lib/testing")
+  const { deepEqual, test } = await import("./testing.mjs")
 
   type T = { a: number; b: number }
   const init: T = { a: 1, b: 2 }

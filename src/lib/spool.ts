@@ -43,7 +43,7 @@ export function spool<S, D extends SpoolDesc<S>>(
 }
 
 export async function tests() {
-  const { deepEqual } = await import("../lib/testing")
+  const { deepEqual } = await import("./testing.mjs")
   const num = spool({
     add: x => (s: number) => s + x,
     sub: x => (s: number) => s - x,

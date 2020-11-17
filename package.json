@@ -6,10 +6,12 @@
   "license": "MIT",
   "main": "build/apps/ui/main.js",
   "bin": {
-    "localhack": "build/entries/cli.js"
+    "localhack": "src/entries/cli.mjs"
   },
   "scripts": {
     "start-flow": "electron .",
+    "test": "NODE_ENV=test node",
+    "cli": "node src/entries/cli.mjs",
     "build": "yarn build:copy && yarn build:ts",
     "build:ts": "tsc",
     "build:copy": "copyfiles --verbose --up 1 'src/**/*.html' build",

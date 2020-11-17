@@ -100,10 +100,10 @@ export const mapRes = res => {
 
 /** Make a dispatcher. Call it to add plugins, etc. */
 export const make = (start, state = {}) => {
-  const step = start(dispatch)
-  return dispatch
+  const step = start(is)
+  return is
 
-  function dispatch(input) {
+  function is(input) {
     if (input !== undefined) {
       const fn = step(input)
       if (fn) state = fn(state)

@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from "electron"
 import * as Path from "path"
 import * as project from "../../project"
-import { plugin } from "../core"
+import { plugin } from "../core.mjs"
 
 export const windows = dispatch => {
   app.on("activate", onActivate)
