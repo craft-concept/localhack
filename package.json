@@ -4,18 +4,16 @@
   "description": "Build sharable tools quickly without servers.",
   "author": "Jeff Peterson <jeff@yak.sh>",
   "license": "MIT",
-  "main": "build/apps/ui/main.js",
+  "main": "build/entries/cli.mjs",
   "bin": {
     "localhack": "src/entries/cli.mjs"
   },
   "scripts": {
-    "start-flow": "electron .",
     "test": "NODE_ENV=test node",
     "cli": "node src/entries/cli.mjs",
-    "build": "yarn build:copy && yarn build:ts",
-    "build:ts": "tsc",
-    "build:copy": "copyfiles --verbose --up 1 'src/**/*.html' build",
-    "ui": "electron src/entries/electron.js main.mjs"
+    "build": "yarn cli build",
+    "watch": "yarn cli watch",
+    "ui": "electron build/entries/electron.js main.mjs"
   },
   "repository": "https://github.com/conceptlove/localhack",
   "keywords": [

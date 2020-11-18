@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 import { sift, standard, debugging, current } from "../lib/sift.mjs"
-import { all } from "../lib/sift/plugins/build.mjs"
+import * as build from "../lib/sift/plugins/build.mjs"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = sift()
 
-send(standard, all, debugging, cli, build)
+send(standard, build.all, cli, watchCmd, buildCmd)
 
 send({
   cwd,
@@ -25,11 +25,25 @@ function cli(input) {
   }
 }
 
-function build(input) {
+function buildCmd(input) {
   if (input.cmd !== "build") return
 
   const glob = "src/**/*.{html,ts,js,mjs}"
   console.log(`Building ${glob}...`)
 
-  return state => send => send({ glob })
+  let watching = false
+  if (input.args.includes("--watch")) {
+    watching = true
+    console.log(`Watching for changes...`)
+    send(build.watch)
+  }
+
+  return state => send => send({ glob, watching })
+}
+
+function watchCmd(input) {
+  if (input.cmd !== "watch") return
+
+  input.cmd = "build"
+  input.args.push("--watch")
 }

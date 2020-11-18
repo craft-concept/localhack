@@ -1,7 +1,8 @@
 import fg from "fast-glob"
+import chalk from "chalk"
 import * as fs from "fs"
-import { copyFile, mkdir, readFile, writeFile } from "fs/promises"
-import { dirname, extname } from "path"
+import { copyFile, mkdir, readFile, writeFile, stat } from "fs/promises"
+import { dirname } from "path"
 import ts from "typescript"
 import * as project from "../../project.mjs"
 import { current, exists, isNil, iter } from "../edit.mjs"
@@ -16,7 +17,7 @@ export const glob = input => state => async send => {
 
   for (const glob of iter(input.glob))
     for await (const src of fg.stream(project.find(glob), { dot: true })) {
-      send({ glob, src, ext: extname(src) })
+      send({ glob, src })
     }
 }
 
@@ -27,11 +28,33 @@ export const rename = file => {
   file.dst = file.src.replace(/\/src\//, "/build/").replace(/\.ts$/, ".mjs")
 }
 
+export const modified = file => {
+  if (!file.src) return
+  if (!file.dst) return
+  if ("modified" in file) return
+
+  file = current(file)
+
+  return state => async send => {
+    const src = await stat(file.src)
+    try {
+      const dst = await stat(file.dst)
+      if (src.mtimeMs < dst.mtimeMs) {
+        return send({ ...file, modified: false })
+      }
+    } catch (e) {}
+
+    console.log(`${chalk.yellow("Change")}: src/${project.file(file.src)}`)
+    send({ ...file, modified: true })
+  }
+}
+
 /**
  * Plugin that copies source files.
  */
 export const copy = file => state => {
   if (file.copied) return
+  if (!file.modified) return
   if (!file.src) return
   if (!file.dst) return
   if (!/\.html$/.test(file.src)) return
@@ -51,6 +74,7 @@ export const copy = file => state => {
 export const source = file => state => {
   if (file.reading) return
   if (!file.src) return
+  if (!file.modified) return
   if (exists(file.source)) return
 
   file.reading = true
@@ -61,10 +85,6 @@ export const source = file => state => {
     const source = await readFile(file.src).then(String)
     send({ ...file, source })
   }
-}
-
-export const file = (x = {}) => {
-  // x.src ?? (x.src = )
 }
 
 /**
@@ -80,6 +100,7 @@ export const output = file => state => {
   return async send => {
     await mkdir(dirname(dst), { recursive: true })
     await writeFile(dst, output)
+    console.log(`${chalk.green("Wrote")}:  ${project.file(dst)}`)
     send({ ...file, written: true })
   }
 }
@@ -116,4 +137,21 @@ export const typescript = file => {
   }
 }
 
-export const all = [glob, rename, copy, source, file, typescript, output]
+export const watch = input => {
+  if (input !== watch) return
+
+  return state => send => {
+    const watcher = fs.watch(
+      project.src(),
+      { recursive: true },
+      (event, path) => {
+        if (event !== "change") return
+        const src = project.src(path)
+
+        send({ src, watched: true })
+      },
+    )
+  }
+}
+
+export const all = [glob, rename, modified, copy, source, typescript, output]
