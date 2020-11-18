@@ -1,37 +1,47 @@
 import fg from "fast-glob"
-import ts from "typescript"
 import * as fs from "fs"
-import { mkdir, copyFile, readFile, writeFile } from "fs/promises"
+import { copyFile, mkdir, readFile, writeFile } from "fs/promises"
 import { dirname, extname } from "path"
-import { iter, current } from "../edit.mjs"
+import ts from "typescript"
 import * as project from "../../project.mjs"
+import { current, exists, isNil, iter } from "../edit.mjs"
 
 const { COPYFILE_FICLONE } = fs.constants
 
 /**
- * Plugin that turns globs into files.
+ * Plugin that turns globs into source files.
  */
 export const glob = input => state => async send => {
+  if (input.src) return
+
   for (const glob of iter(input.glob))
     for await (const src of fg.stream(project.find(glob), { dot: true })) {
-      send({ src, ext: extname(src), from: glob })
+      send({ glob, src, ext: extname(src) })
     }
+}
+
+export const rename = file => {
+  if (!file.src) return
+  if (file.dst) return
+
+  file.dst = file.src.replace(/\/src\//, "/build/").replace(/\.ts$/, ".mjs")
 }
 
 /**
  * Plugin that copies source files.
  */
-export const copy = input => state => {
-  const src = input.path
+export const copy = file => state => {
+  if (file.copied) return
+  if (!file.src) return
+  if (!file.dst) return
+  if (!/\.html$/.test(file.src)) return
 
-  if (src && /\/src\/.+\.html$/.test(src)) {
-    const dest = src.replace(/\/src\//, "/build/")
+  const { src, dst } = (file = current(file))
 
-    return async send => {
-      await mkdir(dirname(dest), { recursive: true })
-      await copyFile(src, dest, COPYFILE_FICLONE)
-      send({ path: dest, copied: true })
-    }
+  return async send => {
+    await mkdir(dirname(dst), { recursive: true })
+    await copyFile(src, dst, COPYFILE_FICLONE)
+    send({ ...file, dst, copied: true })
   }
 }
 
@@ -39,13 +49,17 @@ export const copy = input => state => {
  * Plugin that reads source files.
  */
 export const source = file => state => {
+  if (file.reading) return
   if (!file.src) return
-  if (typeof file.content === "string") return
+  if (exists(file.source)) return
+
+  file.reading = true
+
   file = current(file)
 
   return async send => {
-    const content = await readFile(path).then(String)
-    send({ ...file, path, content })
+    const source = await readFile(file.src).then(String)
+    send({ ...file, source })
   }
 }
 
@@ -57,27 +71,31 @@ export const file = (x = {}) => {
  * Plugin that reads source files.
  */
 export const output = file => state => {
+  if (file.written) return
   if (!file.dst) return
-  if (!file.output) return
-  const { path } = file
+  if (isNil(file.output)) return
+
+  const { dst, output } = (file = current(file))
 
   return async send => {
-    const content = await readFile(path).then(String)
-    send({ path, content })
+    await mkdir(dirname(dst), { recursive: true })
+    await writeFile(dst, output)
+    send({ ...file, written: true })
   }
 }
 
 /**
  * Plugin that compiles typescript files
  */
-export const compiler = input => {
-  if (!input.path || !input.content || input.compiled) return
-  if (!/\/src\/.*\.(mjs|js|ts)$/.test(input.path)) return
+export const typescript = file => {
+  if (exists(file.output)) return
+  if (isNil(file.source)) return
+  if (!/\.(mjs|js|ts)$/.test(file.src)) return
 
-  const { path, content } = input
+  const { source } = (file = current(file))
 
   return state => send => {
-    const { outputText } = ts.transpileModule(content, {
+    const { outputText } = ts.transpileModule(source, {
       compilerOptions: {
         strictNullChecks: true,
         allowJs: true,
@@ -92,9 +110,10 @@ export const compiler = input => {
     })
 
     send({
-      path: path.replace(/\/src\//, "/build/"),
-      content,
-      compiled: outputText,
+      ...file,
+      output: outputText,
     })
   }
 }
+
+export const all = [glob, rename, copy, source, file, typescript, output]

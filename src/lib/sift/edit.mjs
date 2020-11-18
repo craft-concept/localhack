@@ -6,6 +6,10 @@ import {
   original as originalIm,
 } from "immer"
 
+export const isNil = x => x == null
+
+export const exists = x => x != null
+
 /**
  * Iterate over an object collection of objects. Only Arrays and Sets are themselves also iterated.
  */

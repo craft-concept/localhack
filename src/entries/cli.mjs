@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 import { sift, standard, debugging, current } from "../lib/sift.mjs"
-import { glob, copy, compiler, fileReader } from "../lib/sift/plugins/build.mjs"
+import { all } from "../lib/sift/plugins/build.mjs"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = sift()
 
-send(standard, glob, copy, fileReader, compiler, debugging, cli, build)
+send(standard, all, debugging, cli, build)
 
 send({
   cwd,
