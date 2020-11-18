@@ -27,6 +27,38 @@ test(iter, ({ eq }) => {
   eq([...iter([1, [2, 3], 4])], [1, 2, 3, 4])
 })
 
+/**
+ * `iter` over the inputs, passing each through `fn`.
+ */
+export const iterMap = fn =>
+  function* iterMap(...xs) {
+    for (const v of iter(xs)) yield* iter(fn(v))
+  }
+
+test(iterMap, ({ eq }) => {
+  const inc = x => x + 1
+  const evenOnly = x => (x % 2 === 0 ? x : null)
+  const incs = iterMap(inc)
+  const evens = iterMap(evenOnly)
+
+  eq([...incs()], [])
+  eq([...incs([])], [])
+  eq([...incs(null)], [])
+  eq([...incs(undefined)], [])
+  eq([...incs(1, 2, [3, [4]], 5)], [2, 3, 4, 5, 6])
+  eq([...incs(null, undefined, 1)], [2])
+  eq([...evens(1, 2, [3, [4]], 5)], [2, 4])
+})
+
+/**
+ * Returns a function that maps over its inputs, passing each through `fn`.
+ */
+export const iterate = fn => (...inputs) => {
+  const out = []
+  for (const input of iter(inputs)) out.push(...iter(fn(input)))
+  return out
+}
+
 export const DRAFT_STATE = Symbol.for("immer-state")
 
 export const draftState = input => input[DRAFT_STATE]

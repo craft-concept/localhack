@@ -49,6 +49,10 @@ export const source = file => state => {
   }
 }
 
+export const file = (x = {}) => {
+  // x.src ?? (x.src = )
+}
+
 /**
  * Plugin that reads source files.
  */

@@ -1,63 +1,79 @@
 import { produce } from "immer"
 import { test } from "../testing.mjs"
-import { iter, current } from "./edit.mjs"
+import { iter, current, iterate } from "./edit.mjs"
 
 /** The standard function for making a sift instance */
 export const sift = (...inputs) => {
-  const send = make()
+  const send = make(originalPlugin)
   send(...inputs)
   return send
 }
 
-export const make = () =>
-  /**
-   * Simultaneous sends are queued and processed after the current inputs.
-   */
-  function send(...inputs) {
-    if (send.sending) {
-      send.queue || (send.queue = [])
-      send.queue.push(...inputs)
-      return inputs
-    }
+export const make = (...metaPlugins) => root().meta(metaPlugins)
 
-    send.sending = true
-    send.state ?? (send.state = {})
-
-    const result = produce(inputs, inputs => {
-      send.state = produce(send.state, state => {
-        state.plugins ?? (state.plugins = [])
-
-        for (const input of iter(inputs)) {
-          if (typeof input === "function") state.plugins.push(input)
-
-          const inputStage = current(state.plugins)
-          const transformStage = run(inputStage, input)
-          const outputStage = run(transformStage, state)
-          run(outputStage, send)
-        }
-      })
-    })
-
-    send.sending = false
-
-    /**
-     * Sending one at a time helps the stack grow quicker and thus helps
-     * detect broken plugins.
-     */
-    const queued = send.queue?.pop()
-    if (queued) send(queued)
-    return result
+export const root = () => {
+  send.send = send
+  send.next = () => {}
+  send.meta = (...fns) => {
+    for (const fn of iter(fns)) send.next = fn(send) || send.next
+    return send
   }
+  return send
+
+  function send(...inputs) {
+    return send.next(inputs)
+  }
+}
+
+export const originalPlugin = ({ send }) => inputs => {
+  if (send.sending) {
+    send.queue || (send.queue = [])
+    send.queue.push(...iter(inputs))
+    return inputs
+  }
+
+  send.sending = true
+  send.state ?? (send.state = {})
+
+  const result = produce(inputs, inputs => {
+    send.state = produce(send.state, state => {
+      state.plugins ?? (state.plugins = [])
+
+      for (const input of iter(inputs)) {
+        if (typeof input === "function") state.plugins.push(input)
+
+        const inputPlugins = current(state.plugins)
+        const transformPlugins = run(inputPlugins, input)
+        const outputPlugins = run(transformPlugins, state)
+        run(outputPlugins, send)
+      }
+    })
+  })
+
+  send.sending = false
+
+  /**
+   * Sending one at a time helps the stack grow quicker and thus helps
+   * detect broken plugins.
+   */
+  const queued = send.queue?.shift()
+  if (queued) send(queued)
+
+  return result
+}
+
+export const isFunction = x => typeof x === "function"
+
+export const apply = (fn, x) => [...iter(fn(x))].filter(isFunction)
 
 export const run = (fns, x) => {
   const out = []
-  for (const fn of iter(fns)) out.push(...iter(fn(x)))
-  return out.filter(x => typeof x === "function")
+  for (const fn of iter(fns)) out.push(...apply(fn, x))
+  return out
 }
 
 test(make, ({ eq }) => {
-  const send = make()
-  send(
+  const send = sift(
     input => state => {
       state.count ?? (state.count = 0)
       state.count++

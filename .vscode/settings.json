@@ -1,9 +1,14 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "editor.rulers": [
-    80
-  ],
-  "files.exclude": {
-    "build": true
-  }
+
+  "files.exclude": { "build": true },
+
+  "editor.rulers": [80],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+
+  "prettier.arrowParens": "avoid",
+  "prettier.packageManager": "yarn",
+  "prettier.semi": false,
+  "prettier.trailingComma": "all"
 }
