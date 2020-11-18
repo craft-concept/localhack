@@ -35,6 +35,23 @@ export const isOriginal = input => !isModified(input)
 export const current = input => (isDraft(input) ? currentIm(input) : input)
 export const original = input => (isDraft(input) ? originalIm(input) : input)
 
+export function deepAssign(target, ...sources) {
+  for (const source of sources)
+    for (const k of Object.keys(source))
+      if (typeof target[k] === "object" && typeof source[k] === "object") {
+        deepAssign(target[k], source[k])
+      } else {
+        target[k] = source[k]
+      }
+
+  return target
+}
+
+test(deepAssign, ({ eq }) => {
+  const source = { a: { b: 2 } }
+  eq(deepAssign({ a: 1, c: 3 }, source), { a: { b: 2 }, c: 3 })
+})
+
 test(isModified, ({ eq }) => {
   produce({ test: { a: 1 } }, obj => {
     eq(isModified(obj), false)

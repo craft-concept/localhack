@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid"
-import { current, original } from "./edit.mjs"
+import { current, original, deepAssign } from "./edit.mjs"
 
 /**
  * Makes the previous state available. More of a simple plugin example than a
@@ -26,7 +26,7 @@ export const config = input => {
 
   return state => {
     state.config || (state.config = {})
-    Object.assign(state.config, input.config)
+    deepAssign(state.config, input.config)
   }
 }
 
