@@ -10,6 +10,10 @@ export const isNil = x => x == null
 
 export const exists = x => x != null
 
+export function isSelf(fn) {
+  return fn === arguments.callee
+}
+
 /**
  * Iterate over an object collection of objects. Only Arrays and Sets are themselves also iterated.
  */

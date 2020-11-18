@@ -141,6 +141,8 @@ export const watch = input => {
   if (input !== watch) return
 
   return state => send => {
+    state.watching = true
+
     const watcher = fs.watch(
       project.src(),
       { recursive: true },

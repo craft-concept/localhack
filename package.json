@@ -13,7 +13,7 @@
     "cli": "node src/entries/cli.mjs",
     "build": "yarn cli build",
     "watch": "yarn cli watch",
-    "ui": "electron build/entries/electron.js main.mjs"
+    "ui": "yarn cli ui"
   },
   "repository": "https://github.com/conceptlove/localhack",
   "keywords": [
