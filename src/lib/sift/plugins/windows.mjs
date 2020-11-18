@@ -1,9 +1,10 @@
-import { app, BrowserWindow } from "electron"
+import electron from "electron"
 import * as Path from "path"
 import * as project from "../../project.mjs"
-import { plugin } from "../core.mjs"
 
-export const windows = dispatch => {
+const { app, BrowserWindow } = electron
+
+export const windows = send => {
   app.on("activate", onActivate)
   app.whenReady().then(onReady)
 
@@ -11,16 +12,16 @@ export const windows = dispatch => {
     app.off("activate", onActivate)
   }
 
-  return plugin("windows", input => state => {
-    state.appReady ??= false
-    const windows = (state.windows ??= {})
-    windows.index ??= new Map()
-    windows.queue ??= []
+  return input => state => {
+    state.appReady ?? (state.appReady = false)
+    state.windows ?? (state.windows = {})
+    const { windows } = state
+    windows.index ?? (windows.index = new Map())
+    windows.queue ?? (windows.queue = [])
 
     if (input.appReady) state.appReady = true
     if (input.windowClosedId) windows.index.delete(input.windowClosedId)
-    if (input.openWindow) windows.queue.push(input.openWindow)
-    if (input.openWindows) windows.queue.push(...input.openWindows)
+    if (input.window) windows.queue.push(input.window)
 
     if (!state.appReady) return
 
@@ -48,17 +49,17 @@ export const windows = dispatch => {
 
       const id = String(win.id)
 
-      win.on("closed", () => dispatch({ windowClosedId: id }))
+      win.on("closed", () => send({ windowClosedId: id }))
 
       state.windows.index.set(id, { id, ...req })
     }
-  })
+  }
 
   function onActivate() {
-    dispatch({ appActivated: true })
+    send({ appActivated: true })
   }
 
   function onReady() {
-    dispatch({ appReady: true })
+    send({ appReady: true })
   }
 }

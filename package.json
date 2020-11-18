@@ -15,7 +15,7 @@
     "build": "yarn build:copy && yarn build:ts",
     "build:ts": "tsc",
     "build:copy": "copyfiles --verbose --up 1 'src/**/*.html' build",
-    "start": "electron build/entries/main.js"
+    "ui": "electron src/entries/electron.js main.mjs"
   },
   "repository": "https://github.com/conceptlove/localhack",
   "keywords": [
@@ -32,6 +32,7 @@
     "@funkia/hareactive": "^0.4.0",
     "@types/react": "^16.9.56",
     "@types/uuid": "^8.3.0",
+    "chalk": "^4.1.0",
     "copyfiles": "^2.4.0",
     "electron": "11.0.0-beta.22",
     "fast-glob": "^3.2.4",

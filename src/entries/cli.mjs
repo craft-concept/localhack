@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import { sift, standard, debugging } from "../lib/sift.mjs"
-import { glob, modules } from "../lib/sift/plugins/build.mjs"
+import { sift, standard, debugging, current } from "../lib/sift.mjs"
+import { glob, copy } from "../lib/sift/plugins/build.mjs"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = sift()
 
-send(standard, glob, modules, debugging, cli, build)
+send(standard, glob, copy, debugging, cli, build)
 
 send({
   cwd,
@@ -21,7 +21,7 @@ function cli(input) {
   return state => {
     state.cwd = input.cwd
     state.cmd = input.cmd
-    state.args = input.args
+    state.args = current(input.args)
   }
 }
 

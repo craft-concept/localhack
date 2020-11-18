@@ -1,19 +1,6 @@
-import {
-  isDraft,
-  produce,
-  current as currentIm,
-  original as originalIm,
-} from "immer"
+import { produce } from "immer"
 import { test } from "../testing.mjs"
-import { iter } from "./edit.mjs"
-
-export class DoubleSendError extends Error {
-  constructor(inputs, state) {
-    super("Cannot send while already sending.")
-    this.inputs = inputs
-    this.state = state
-  }
-}
+import { iter, current } from "./edit.mjs"
 
 /** The standard function for making a sift instance */
 export const sift = (...inputs) => {
@@ -23,41 +10,52 @@ export const sift = (...inputs) => {
 }
 
 export const make = () =>
+  /**
+   * Simultaneous sends are queued and processed after the current inputs.
+   */
   function send(...inputs) {
-    if (send.sending) throw new DoubleSendError(inputs, send.state)
+    if (send.sending) {
+      send.queue || (send.queue = [])
+      send.queue.push(...inputs)
+      return inputs
+    }
 
+    send.sending = true
     send.state ?? (send.state = {})
 
-    return produce(inputs, inputs => {
+    const result = produce(inputs, inputs => {
       send.state = produce(send.state, state => {
         state.plugins ?? (state.plugins = [])
 
         for (const input of iter(inputs)) {
           if (typeof input === "function") state.plugins.push(input)
 
-          send.sending = true
-          const inputStage = state.plugins
+          const inputStage = current(state.plugins)
           const transformStage = run(inputStage, input)
           const outputStage = run(transformStage, state)
-          send.sending = false
-
-          const outputResult = run(outputStage, send)
+          run(outputStage, send)
         }
       })
     })
+
+    send.sending = false
+
+    /**
+     * Sending one at a time helps the stack grow quicker and thus helps
+     * detect broken plugins.
+     */
+    const queued = send.queue?.pop()
+    if (queued) send(queued)
+    return result
   }
-
-export const current = input => (isDraft(input) ? currentIm(input) : input)
-
-export const original = input => (isDraft(input) ? originalIm(input) : input)
 
 export const run = (fns, x) => {
   const out = []
-  for (const fn of fns) out.push(...iter(fn(x)))
+  for (const fn of iter(fns)) out.push(...iter(fn(x)))
   return out.filter(x => typeof x === "function")
 }
 
-test(make, ({ eq, throws }) => {
+test(make, ({ eq }) => {
   const send = make()
   send(
     input => state => {
@@ -67,12 +65,12 @@ test(make, ({ eq, throws }) => {
     input => {},
     input => (input.testing = true),
     input => state => send => {
-      if (state.count == 3) send({ msg: "count is 3!" })
+      if (state.count === 4) send({ msg: "count is 4!" })
     },
   )
 
   eq(send({}), [{ testing: true }])
-  eq(send.state.count, 5)
+  eq(send.state.count, 6)
 })
 
 /*
@@ -88,16 +86,14 @@ in mind.
 
 - Stage: Input
   - `input => { mutate(input) }`
+
 - Stage: Transform
   `input => state => { mutate(input) & mutate(state) }`
+
 - Stage: Output
   - `input => state => send => { send(futureInputs) }`
 
-
-Should some stages run in reverse? What does the order affect?
-
-`reverseIter` could be interesting.
-
 Set of meta-plugins that gets the raw input, state, and send.
+I guess that'd be the same as simply replacing send.
 
 */
