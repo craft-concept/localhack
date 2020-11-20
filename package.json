@@ -4,14 +4,15 @@
   "description": "Build sharable tools quickly without servers.",
   "author": "Jeff Peterson <jeff@yak.sh>",
   "license": "MIT",
-  "main": "build/entries/cli.mjs",
+  "main": "dist/entries/cli.mjs",
   "bin": {
-    "localhack": "src/entries/cli.mjs"
+    "localhack": "dist/entries/cli.mjs"
   },
   "scripts": {
     "test": "NODE_ENV=test node",
     "cli": "node src/entries/cli.mjs",
     "build": "yarn cli build",
+    "dist": "cp -r build dist",
     "watch": "yarn cli watch",
     "ui": "yarn cli ui"
   },

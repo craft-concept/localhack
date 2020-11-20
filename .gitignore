@@ -2,7 +2,6 @@
 .DS_Store
 local.*
 *.local.*
-/dist
 /build
 *.log
 /.localhack
