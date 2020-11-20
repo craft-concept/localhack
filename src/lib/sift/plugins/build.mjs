@@ -156,4 +156,17 @@ export const watch = input => {
   }
 }
 
-export const all = [glob, rename, modified, copy, source, typescript, output]
+export const index = {
+  byPath: input => input.path,
+}
+
+export const all = [
+  { index },
+  glob,
+  rename,
+  modified,
+  copy,
+  source,
+  typescript,
+  output,
+]
