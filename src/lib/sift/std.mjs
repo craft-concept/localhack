@@ -1,6 +1,6 @@
-import { v4 as uuid } from "uuid"
 import { fnWith } from "../fns.mjs"
 import { current, original, deepAssign, keys, entries } from "./edit.mjs"
+import * as memory from "./plugins/memory.mjs"
 
 /**
  * Makes the previous state available. More of a simple plugin example than a
@@ -8,12 +8,6 @@ import { current, original, deepAssign, keys, entries } from "./edit.mjs"
  */
 export const previous = input => state => {
   state.previous = { ...original(state), previous: null }
-}
-
-/** Plugin that decorates the input with some additional metadata. */
-export const metadata = input => {
-  input.id || (input.id = uuid())
-  input.ts || (input.ts = new Date().toISOString())
 }
 
 /** Plugin that allows aliasing this input as an alias field. */
@@ -31,33 +25,13 @@ export const config = input => {
   }
 }
 
-/**
- * Adds input indexes and caches.
- */
-export const memory = input => state => {
-  state.index || (state.index = {})
-
-  for (const [name, fn] of entries(input.index)) {
-    state.index[name] = fn
-  }
-
-  for (const [name, fn] of entries(state.index)) {
-    state[name] || (state[name] = {})
-
-    for (const key of iter(fn(input))) {
-      state[name][key] || (state[name][key] = {})
-      deepAssign(state[name][key], input)
-    }
-  }
-}
-
 /** Plugin that logs the input objects. */
 export const trace = input => {
   console.log("input:", current(input))
 }
 
 /** The standard set of plugins. */
-export const standard = [metadata, config, alias, memory]
+export const standard = [memory.default, config, alias]
 
 /** Set of plugins for debugging. */
 export const debugging = [trace, previous]

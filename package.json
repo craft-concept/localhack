@@ -10,11 +10,8 @@
   },
   "scripts": {
     "test": "NODE_ENV=test node",
-    "cli": "node src/entries/cli.mjs",
-    "build": "yarn cli build",
-    "dist": "cp -r build dist",
-    "watch": "yarn cli watch",
-    "ui": "yarn cli ui"
+    "cli": "node build/entries/cli.mjs",
+    "dist": "cp -r build dist"
   },
   "repository": "https://github.com/conceptlove/localhack",
   "keywords": [
