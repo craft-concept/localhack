@@ -5,4 +5,9 @@ export function makeFn<F extends Function, F2>(
   { name, ...props }: Partial<F2> & { name?: string },
 ): F & F2
 
+export function fnWith<F extends Function, F2>(
+  { name, ...props }: Partial<F2> & { name?: string },
+  fn: F,
+): F & F2
+
 export function copyFn<F extends Function>(fn: F, name?: string): F
