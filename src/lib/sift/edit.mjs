@@ -10,12 +10,13 @@ export const isNil = x => x == null
 
 export const exists = x => x != null
 
-export function isSelf(fn) {
-  return fn === arguments.callee
-}
+export const isObj = obj =>
+  obj != null &&
+  typeof obj === "object" &&
+  Object.getPrototypeOf(obj) === Object.prototype
 
 /**
- * Iterate over an object collection of objects. Only Arrays and Sets are themselves also iterated.
+ * Iterate over a collection of objects. Only Arrays and Sets are themselves also iterated.
  */
 export function* iter(x) {
   if (x == null) return
@@ -24,6 +25,20 @@ export function* iter(x) {
   } else {
     yield x
   }
+}
+
+export function* fns(...x) {
+  for (const v of iter(x)) if (typeof x === "function") yield x
+}
+
+/** Iterate over the keys of an object. */
+export function* keys(obj) {
+  if (isObj(obj)) for (const k in obj) yield k
+}
+
+/** Iterate over the entries of an object. */
+export function* entries(obj) {
+  if (isObj(obj)) for (const k in obj) yield [k, obj[k]]
 }
 
 test(iter, ({ eq }) => {
@@ -77,7 +92,7 @@ export const original = input => (isDraft(input) ? originalIm(input) : input)
 
 export function deepAssign(target, ...sources) {
   for (const source of sources)
-    for (const k of Object.keys(source))
+    for (const k of keys(source))
       if (typeof target[k] === "object" && typeof source[k] === "object") {
         deepAssign(target[k], source[k])
       } else {
