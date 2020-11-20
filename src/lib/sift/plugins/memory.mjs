@@ -33,8 +33,9 @@ export const populateFromId = input => state => {
   input.id ??= uuid()
   input.createdAt ??= new Date().toISOString()
 
-  deepAssign(input, state.byId[input.id])
-  state.byId[input.id] = current(input)
+  const cache = (state.byId[input.id] ??= {})
+  deepAssign(cache, current(input))
+  deepAssign(input, current(cache))
 }
 
 export const writeIndexes = input => state => {
