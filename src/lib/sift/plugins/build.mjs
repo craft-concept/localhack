@@ -156,12 +156,12 @@ export const watch = input => {
   }
 }
 
-export const index = {
+export const indexers = {
   byPath: input => input.path,
 }
 
 export const all = [
-  { index },
+  { indexers },
   glob,
   rename,
   modified,

@@ -1,19 +1,21 @@
 import { v4 as uuid } from "uuid"
 import { current, iter, entries, deepAssign } from "../edit.mjs"
 
+/** Records sent indexes. */
 export const acceptIndexes = input => state => {
-  state.index ??= {}
+  state.indexers ??= {}
 
-  for (const [name, fn] of entries(input.index)) {
-    state.index[name] = fn
+  for (const [name, fn] of entries(input.indexers)) {
+    state.indexers[name] = fn
     state[name] ??= state[name]
   }
 }
 
+/** Use our recorded indexes to find ids for id-less inputs. */
 export const findId = input => state => {
   if (input.id) return
 
-  for (const [name, indexer] of entries(state.indexes)) {
+  for (const [name, indexer] of entries(state.indexers)) {
     const index = state[name]
     if (!index) return
 
@@ -27,7 +29,6 @@ export const findId = input => state => {
 }
 
 export const populateFromId = input => state => {
-  state.index ??= {}
   state.byId ??= {}
 
   input.id ??= uuid()
@@ -41,7 +42,7 @@ export const populateFromId = input => state => {
 export const writeIndexes = input => state => {
   if (!input.id) return
 
-  for (const [name, indexer] of entries(state.index)) {
+  for (const [name, indexer] of entries(state.indexers)) {
     state[name] ??= {}
 
     for (const key of iter(indexer(input))) {
