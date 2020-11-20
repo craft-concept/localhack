@@ -15,6 +15,12 @@
   // 	],
   // 	"description": "Log output to console"
   // }
+  "JS Code Block": {
+    "scope": "markdown",
+    "prefix": "js",
+    "description": "Create a code block.",
+    "body": ["```js", "$0", "```"]
+  },
   "Import React": {
     "scope": "typescriptreact",
     "prefix": "react",
