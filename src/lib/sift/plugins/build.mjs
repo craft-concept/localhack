@@ -16,7 +16,10 @@ export const glob = input => state => async send => {
   if (input.src) return
 
   for (const glob of iter(input.glob))
-    for await (const src of fg.stream(project.find(glob), { dot: true })) {
+    for await (const src of fg.stream(project.find(glob), {
+      dot: true,
+      absolute: true,
+    })) {
       send({ glob, src })
     }
 }
