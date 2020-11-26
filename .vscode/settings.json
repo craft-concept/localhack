@@ -10,5 +10,21 @@
   "prettier.arrowParens": "avoid",
   "prettier.packageManager": "yarn",
   "prettier.semi": false,
-  "prettier.trailingComma": "all"
+  "prettier.trailingComma": "all",
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true,
+      "source.fixAll": true
+    }
+  },
+
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true,
+      "source.fixAll": true
+    }
+  }
 }
