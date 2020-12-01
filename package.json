@@ -8,6 +8,10 @@
   "bin": {
     "localhack": "dist/entries/cli.mjs"
   },
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./*": "./dist/*.mjs"
+  },
   "scripts": {
     "test": "NODE_ENV=test node",
     "cli": "node build/entries/cli.mjs",

@@ -5,11 +5,52 @@ import {
   current as currentIm,
   original as originalIm,
 } from "immer"
+import * as T from "./convert.mjs"
 
+/** Default type conversions. */
+export { T }
+
+/**
+ * Returns whether `x` is null or undefined.
+ * Opposite of `exists`.
+ */
 export const isNil = x => x == null
 
+/**
+ * Returns whether `x` is not null or undefined.
+ * Opposite of `isNil`.
+ */
 export const exists = x => x != null
 
+/**
+ * Enforce properties as certain types.
+ */
+export const reify = (state, desc) => {
+  for (const [k, as] of entries(desc)) {
+    state[k] = as(state[k])
+  }
+
+  return state
+}
+test(reify, ({ eq }) => {
+  const state = {
+    number: 12,
+    string: "something",
+  }
+
+  eq(
+    reify(state, {
+      number: T.Array,
+      string: T.Set,
+    }),
+    {
+      number: [12],
+      string: new Set(["something"]),
+    },
+  )
+})
+
+/** Returns whether the given object a plain Object. */
 export const isObj = obj =>
   obj != null &&
   typeof obj === "object" &&
@@ -20,7 +61,8 @@ export const isObj = obj =>
  */
 export function* iter(x) {
   if (x == null) return
-  if (Array.isArray(x) || x instanceof Set) {
+  if (x instanceof Map) x = x.keys()
+  if (typeof x === "object" && Symbol.iterator in x) {
     for (const xa of x) yield* iter(xa)
   } else {
     yield x

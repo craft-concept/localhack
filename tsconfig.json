@@ -9,7 +9,7 @@
     "moduleResolution": "node",
     "jsx": "react",
     "jsxFactory": "h",
-    "outDir": "build",
+    "outDir": "build/tsc",
     "plugins": [{ "name": "typescript-lit-html-plugin" }]
   },
   "compileOnSave": true,

@@ -72,6 +72,12 @@ export const run = (fns, x) => {
   return out
 }
 
+export const runWith = (fns, inputs) => {
+  for (const input of iter(inputs)) {
+    run(fns, input)
+  }
+}
+
 test(make, ({ eq }) => {
   const send = sift(
     input => state => {

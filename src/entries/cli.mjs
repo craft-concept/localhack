@@ -3,14 +3,20 @@
 import { sift, standard, debugging, current } from "../lib/sift.mjs"
 import * as build from "../lib/sift/plugins/build.mjs"
 import * as project from "../lib/project.mjs"
+import * as ts from "../lib/sift/plugins/typescript.mjs"
 import electron from "electron"
-import { execFile } from "child_process"
+import { execFile, spawn } from "child_process"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = sift()
 
-send(standard, build.all, cli)
+send(
+  standard,
+  //  build.all,
+  cli,
+  ts.compiler,
+)
 
 send({
   cwd,
@@ -30,6 +36,8 @@ function cli(input) {
       switch (input.cmd) {
         case "build":
           return send(buildCmd)
+        case "test":
+          return send(buildCmd, testCmd)
         case "watch":
           return send(buildCmd, watchCmd)
         case "ui":
@@ -48,6 +56,24 @@ function buildCmd(input) {
   return state => send => {
     if (state.args.includes("--watch")) send(watchCmd)
     send({ glob })
+  }
+}
+
+function testCmd(input) {
+  if (input !== testCmd) return
+
+  return state => {
+    const globs = [...iter(state.args)]
+    if (!globs.length) globs.push("entries/test.mjs")
+
+    spawn(
+      electron,
+      [project.file("build/entries/electron.js"), state.args[0]],
+      { env: { ELECTRON_RUN_AS_NODE: "1", NODE_ENV: "test" } },
+      err => {
+        if (err) return console.error(err)
+      },
+    )
   }
 }
 
