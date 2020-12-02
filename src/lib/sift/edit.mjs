@@ -25,7 +25,7 @@ export const exists = x => x != null
 /**
  * Enforce properties as certain types.
  */
-export const reify = (state, desc) => {
+export const reify = desc => state => {
   for (const [k, as] of entries(desc)) {
     state[k] = as(state[k])
   }
