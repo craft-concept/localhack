@@ -36,9 +36,9 @@ function reportWatchStatusChanged(diagnostic: ts.Diagnostic) {
 }
 
 export const compiler = input => state => {
-  const { typescript } = reify(state, {
+  const { typescript } = reify({
     typescript: T.Object,
-  })
+  })(state)
 
   typescript.host ??= ts.createWatchCompilerHost(
     [],

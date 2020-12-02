@@ -39,10 +39,10 @@ test(reify, ({ eq }) => {
   }
 
   eq(
-    reify(state, {
+    reify({
       number: T.Array,
       string: T.Set,
-    }),
+    })(state),
     {
       number: [12],
       string: new Set(["something"]),
