@@ -42,10 +42,7 @@ export const originalPlugin = ({ send }) => inputs => {
       for (const input of iter(inputs)) {
         if (typeof input === "function") state.plugins.push(input)
 
-        const inputPlugins = current(state.plugins)
-        const transformPlugins = run(inputPlugins, input)
-        const outputPlugins = run(transformPlugins, state)
-        run(outputPlugins, send)
+        runWith(state.plugins, input, state, send)
       }
     })
   })
@@ -72,9 +69,9 @@ export const run = (fns, x) => {
   return out
 }
 
-export const runWith = (fns, inputs) => {
-  for (const input of iter(inputs)) {
-    run(fns, input)
+export const runWith = (fns, ...steps) => {
+  for (const step of steps) {
+    fns = run(fns, step)
   }
 }
 
