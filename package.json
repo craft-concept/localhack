@@ -15,7 +15,7 @@
   "scripts": {
     "test": "NODE_ENV=test node",
     "cli": "node build/entries/cli.mjs",
-    "dist": "cp -r build dist"
+    "dist": "cp -r .localhack/build/ dist"
   },
   "repository": "https://github.com/conceptlove/localhack",
   "keywords": [
