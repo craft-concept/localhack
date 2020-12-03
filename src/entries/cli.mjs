@@ -24,7 +24,7 @@ send({
 })
 
 function cli(input) {
-  if (!input.cmd) return
+  if (!("cmd" in input)) return
 
   return state => {
     state.cwd = input.cwd
@@ -33,6 +33,8 @@ function cli(input) {
 
     return send => {
       switch (input.cmd) {
+        case undefined:
+          return send(usageCmd)
         case "build":
           return send(buildCmd)
         case "dist":
@@ -45,6 +47,16 @@ function cli(input) {
           return send(buildCmd, watchCmd, uiCmd)
       }
     }
+  }
+}
+
+function usageCmd(input) {
+  if (input !== usageCmd) return
+
+  return state => {
+    if (state.cmd) return
+
+    console.log("Welcome to LocalHack")
   }
 }
 
