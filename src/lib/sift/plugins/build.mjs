@@ -74,10 +74,13 @@ export function writing(input) {
   if (isNil(input.text)) return
 
   const { path, text } = input
+  const mode = text.startsWith("#!") ? 0o755 : 0o644
 
   return state => async send => {
     await mkdir(dirname(path), { recursive: true })
-    await writeFile(path, text)
+    await writeFile(path, text, {
+      mode,
+    })
 
     console.log(`${chalk.green("Wrote")}: ${project.file(path)}`)
 
