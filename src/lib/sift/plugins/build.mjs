@@ -99,6 +99,7 @@ export function transpiling(input) {
   return state => async send => {
     const { code } = await Esbuild.transform(text, {
       sourcefile: name ?? path,
+      target: "node12",
     })
 
     send({
@@ -106,6 +107,32 @@ export function transpiling(input) {
       text: code,
       persisted: false,
     })
+  }
+}
+
+export function bundling(input) {
+  const { name, path } = input
+
+  if (!path) return
+  if (!/\/src\/entries\/.+\.(mjs|js)x?$/.test(path)) return
+
+  return state => async send => {
+    const { outputFiles, warnings } = await Esbuild.build({
+      entryPoints: [path],
+      platform: "node",
+      target: "node12",
+      external: ["electron", "esbuild"],
+      outdir: project.dist(),
+      write: false,
+    })
+
+    for (const out of outputFiles) {
+      send({
+        path: out.path,
+        text: out.text,
+        persisted: false,
+      })
+    }
   }
 }
 

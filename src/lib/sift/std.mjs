@@ -34,4 +34,4 @@ export const trace = input => {
 export const standard = [memory.default, config, alias]
 
 /** Set of plugins for debugging. */
-export const debugging = [trace, previous]
+export const debugging = [trace]

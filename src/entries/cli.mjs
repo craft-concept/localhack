@@ -10,7 +10,12 @@ const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = sift()
 
-send(standard, build.all, cli)
+send(
+  // debugging,
+  standard,
+  build.all,
+  cli,
+)
 
 send({
   cwd,
@@ -30,6 +35,8 @@ function cli(input) {
       switch (input.cmd) {
         case "build":
           return send(buildCmd)
+        case "dist":
+          return send(distCmd)
         case "test":
           return send(buildCmd, testCmd)
         case "watch":
@@ -48,7 +55,19 @@ function buildCmd(input) {
 
   return state => send => {
     if (state.args.includes("--watch")) send(watchCmd)
+    if (state.args.includes("--dist")) send(distCmd)
     send({ glob })
+  }
+}
+
+function distCmd(input) {
+  if (input !== distCmd) return
+
+  const dist = "src/entries/*.{html,ts,js,mjs}"
+
+  return state => send => {
+    if (state.args.includes("--watch")) send(watchCmd)
+    send(build.bundling, { dist })
   }
 }
 
