@@ -6,7 +6,7 @@
   "license": "MIT",
   "main": "dist/entries/cli.mjs",
   "bin": {
-    "localhack": "dist/entries/cli.mjs"
+    "localhack": "dist/cli.mjs"
   },
   "exports": {
     ".": "./dist/index.mjs",

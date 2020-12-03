@@ -9,6 +9,8 @@ import { current, exists, isNil, iter } from "../edit.mjs"
 
 const { COPYFILE_FICLONE } = fs.constants
 
+export const isJsPath = path => /\.(mjs|js)x?$/.test(path)
+
 /**
  * Plugin that turns globs into source files.
  */
@@ -114,17 +116,29 @@ export function transpiling(input) {
 }
 
 export function bundling(input) {
-  const { name, path } = input
+  const { name, dist } = input
 
-  if (!path) return
-  if (!/\/src\/entries\/.+\.(mjs|js)x?$/.test(path)) return
+  if (!dist) return
+
+  const entryPoints = fg.sync(dist).filter(isJsPath)
 
   return state => async send => {
     const { outputFiles, warnings } = await Esbuild.build({
-      entryPoints: [path],
+      entryPoints,
       platform: "node",
+      bundle: true,
       target: "node12",
-      external: ["electron", "esbuild"],
+      format: "esm",
+      outExtension: { ".js": ".mjs" },
+      external: [
+        "electron",
+        "esbuild",
+        "chalk",
+        "uuid",
+        "fast-glob",
+        "immer",
+        "react",
+      ],
       outdir: project.dist(),
       write: false,
     })
