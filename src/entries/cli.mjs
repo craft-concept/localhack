@@ -3,7 +3,6 @@
 import { sift, standard, debugging, current } from "../lib/sift.mjs"
 import * as build from "../lib/sift/plugins/build.mjs"
 import * as project from "../lib/project.mjs"
-import * as ts from "../lib/sift/plugins/typescript.mjs"
 import electron from "electron"
 import { execFile, spawn } from "child_process"
 
@@ -11,12 +10,7 @@ const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = sift()
 
-send(
-  standard,
-  //  build.all,
-  cli,
-  ts.compiler,
-)
+send(standard, build.all, cli)
 
 send({
   cwd,
@@ -51,7 +45,6 @@ function buildCmd(input) {
   if (input !== buildCmd) return
 
   const glob = "src/**/*.{html,ts,js,mjs}"
-  console.log(`Building ${glob}...`)
 
   return state => send => {
     if (state.args.includes("--watch")) send(watchCmd)
@@ -95,5 +88,5 @@ function watchCmd(input) {
   if (input !== watchCmd) return
 
   console.log(`Watching for changes...`)
-  send(build.watch)
+  send(build.watching)
 }
