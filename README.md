@@ -2,13 +2,15 @@
 
 Build sharable tools quickly without servers.
 
-## Todo
+More info coming soon. So far, this is primarily a repo of experiments and
+ideas.
 
-- [ ] CLI
-- [ ] UI Kit
-  - [x] `WindowEngine`
-  - [ ] UI Editor
-    - [ ] Meta mode
-- [ ] Engine-powered CLI
-  - I want to write CLI tools as an `update` function; the current sub-command
-    is the action, and the state is persisted to disk between runs.
+## Notes
+
+We're attempting to write the LocalHack source in [Literate][literate] style.
+It's an idea we find interesting and are excited to give it a try.
+
+LocalHack implements its own data-architecture called [Sift][sift].
+
+[sift]: src/lib/sift/README.md
+[literate]: src/lib/sift/plugins/Literate.md
