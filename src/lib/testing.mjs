@@ -67,6 +67,9 @@ export const backtrace = err =>
     .filter(line => /^\s*at ./.test(line))
     .join("\n")
 
+/**
+ * Parses details from the stacktrace of the given error.
+ */
 export function* stackDetails(err) {
   const matches = err.stack.matchAll(/ +at.*[( ](?:\w+:\/\/)?(.+):(\d+):(\d+)/g)
 
@@ -81,6 +84,9 @@ export function* stackDetails(err) {
   }
 }
 
+/**
+ * Returns the first filename in the call stack that is not this one.
+ */
 export function callingFilename() {
   const err = new Error()
   let current
