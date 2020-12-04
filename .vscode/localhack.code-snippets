@@ -21,6 +21,12 @@
     "description": "Create a code block.",
     "body": ["```js", "$0", "```"]
   },
+  "Split Code Block": {
+    "scope": "javascript",
+    "prefix": "js",
+    "description": "Split a code block.",
+    "body": ["```", "$0", "```js"]
+  },
   "Import React": {
     "scope": "typescriptreact",
     "prefix": "react",
