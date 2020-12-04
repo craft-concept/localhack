@@ -63,7 +63,7 @@ function usageCmd(input) {
 function buildCmd(input) {
   if (input !== buildCmd) return
 
-  const glob = "src/**/*.{html,ts,js,mjs}"
+  const glob = "src/**/*.{html,ts,js,mjs,md}"
 
   return state => send => {
     if (state.args.includes("--watch")) send(watchCmd)

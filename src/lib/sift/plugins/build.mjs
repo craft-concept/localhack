@@ -6,6 +6,8 @@ import { copyFile, mkdir, readFile, writeFile, stat } from "fs/promises"
 import { dirname, extname } from "path"
 import * as project from "../../project.mjs"
 import { current, exists, isNil, iter } from "../edit.mjs"
+import * as markdown from "./markdown.mjs"
+import * as literate from "./literate.mjs"
 
 const { COPYFILE_FICLONE } = fs.constants
 
@@ -50,6 +52,7 @@ export function reading(input) {
  */
 export function writing(input) {
   if (input.persisted) return
+  if (input.virtual) return
   if (!input.path) return
   if (isNil(input.text)) return
 
@@ -151,4 +154,12 @@ export const indexers = {
   byPath: input => input.path,
 }
 
-export const all = [{ indexers }, globbing, writing, reading, transpiling]
+export const all = [
+  { indexers },
+  globbing,
+  writing,
+  reading,
+  transpiling,
+  markdown.all,
+  literate.all,
+]
