@@ -405,7 +405,7 @@ function parseMarkdown(input) {
 var all = [parseMarkdown];
 
 // .localhack/build/lib/sift/plugins/literate.mjs
-function tangle(input) {
+function tangling(input) {
   const {path: path3, markdown: markdown2} = input;
   if (!path3)
     return;
@@ -429,7 +429,7 @@ function tangle(input) {
     }
   };
 }
-var all2 = [tangle];
+var all2 = [tangling];
 
 // .localhack/build/lib/sift/plugins/build.mjs
 var {COPYFILE_FICLONE} = constants;
