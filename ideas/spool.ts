@@ -1,4 +1,4 @@
-import { ArgsOf, makeFn } from "./fns.mjs"
+import { ArgsOf, makeFn } from "../src/lib/fns.mjs"
 
 export interface SpoolDesc<S> {
   [name: string]: (...args: any[]) => (state: S) => S

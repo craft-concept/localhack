@@ -1,4 +1,4 @@
-import { T } from "./patterns"
+import { T } from "./patterns.local"
 
 // Called an s-map (i.e. state map) in minikanren
 export interface Bindings {

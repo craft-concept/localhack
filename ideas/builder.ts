@@ -1,4 +1,4 @@
-import { ActionOf, Update } from "./flow"
+import { ActionOf, Update } from "./flow.local"
 
 export interface BuilderDesc<S> {
   [name: string]: Update<any, S>

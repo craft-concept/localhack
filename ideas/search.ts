@@ -3,7 +3,7 @@
  * Search queries are described as Patterns. The results are Streams of matches.
  */
 
-import { Pattern, Data } from "./patterns"
+import { Data, Pattern } from "./patterns"
 import { Stream } from "./streams"
 
 export type Searcher<P extends Pattern, T = Data<P>> = (pattern: P) => Stream<T>
