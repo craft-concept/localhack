@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// src/lib/testing.mjs
+// .localhack/build/lib/testing.mjs
 import {strict, AssertionError} from "assert";
 import chalk2 from "chalk";
 var dot = chalk2.green("\u2713");
@@ -72,7 +72,7 @@ function callingFilename() {
   }
 }
 
-// src/lib/sift/edit.mjs
+// .localhack/build/lib/sift/edit.mjs
 import {
   produce,
   isDraft,
@@ -80,7 +80,7 @@ import {
   original as originalIm
 } from "immer";
 
-// src/lib/sift/reify.mjs
+// .localhack/build/lib/sift/reify.mjs
 var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
 var T = {
   Number: (x) => Number(One(x)),
@@ -111,7 +111,7 @@ var T = {
   }
 };
 
-// src/lib/sift/edit.mjs
+// .localhack/build/lib/sift/edit.mjs
 var isNil = (x) => x == null;
 var exists = (x) => x != null;
 var reify2 = (desc) => (state2) => {
@@ -211,7 +211,7 @@ test(isModified, ({eq: eq2}) => {
   });
 });
 
-// src/lib/sift/core.mjs
+// .localhack/build/lib/sift/core.mjs
 import {produce as produce2} from "immer";
 var sift = (...inputs) => {
   const send2 = make(originalPlugin);
@@ -278,18 +278,18 @@ test(make, ({eq: eq2}) => {
     (_a = state2.count) != null ? _a : state2.count = 0;
     state2.count++;
   }, (input) => {
-  }, (input) => input.testing = true, (input) => (state2) => (send3) => {
+  }, (input) => input.testing = true, (input) => (state2) => (send22) => {
     if (state2.count === 4)
-      send3({msg: "count is 4!"});
+      send22({msg: "count is 4!"});
   });
   eq2(send2({}), [{testing: true}]);
   eq2(send2.state.count, 6);
 });
 
-// src/lib/fns.mjs
+// .localhack/build/lib/fns.mjs
 var pre = (fn, ...parts) => (...args2) => fn(...parts, ...args2);
 
-// src/lib/sift/plugins/memory.mjs
+// .localhack/build/lib/sift/plugins/memory.mjs
 import {v4 as uuid2} from "uuid";
 var acceptIndexes = (input) => (state2) => {
   var _a, _b;
@@ -355,7 +355,7 @@ var memory_default = [
   writeToCache
 ];
 
-// src/lib/sift/std.mjs
+// .localhack/build/lib/sift/std.mjs
 var alias = (input) => {
   if (typeof input.alias === "string")
     state[input.alias] = input;
@@ -370,9 +370,9 @@ var config = (input) => {
 };
 var standard = [memory_default, config, alias];
 
-// src/lib/sift/plugins/build.mjs
+// .localhack/build/lib/sift/plugins/build.mjs
 import fg from "fast-glob";
-import chalk4 from "chalk";
+import chalk22 from "chalk";
 import {
   constants,
   watch
@@ -381,7 +381,7 @@ import Esbuild from "esbuild";
 import {copyFile, mkdir, readFile, writeFile, stat} from "fs/promises";
 import {dirname, extname} from "path";
 
-// src/lib/project.mjs
+// .localhack/build/lib/project.mjs
 import {resolve, relative} from "path";
 var root2 = (...paths) => resolve(process.cwd(), ...paths);
 var src = pre(root2, "src");
@@ -389,9 +389,9 @@ var entry = pre(src, "entries");
 var local = pre(root2, ".localhack");
 var build = pre(local, "build");
 var dist = pre(root2, "dist");
-var file = (path3) => relative(root2(), path3);
+var file = (path22) => relative(root2(), path22);
 
-// src/lib/sift/plugins/markdown.mjs
+// .localhack/build/lib/sift/plugins/markdown.mjs
 import MarkdownIt from "markdown-it";
 var md = new MarkdownIt({});
 function parseMarkdown(input) {
@@ -404,7 +404,7 @@ function parseMarkdown(input) {
 }
 var all = [parseMarkdown];
 
-// src/lib/sift/plugins/literate.mjs
+// .localhack/build/lib/sift/plugins/literate.mjs
 function tangle(input) {
   const {path: path3, markdown: markdown2} = input;
   if (!path3)
@@ -431,19 +431,19 @@ function tangle(input) {
 }
 var all2 = [tangle];
 
-// src/lib/sift/plugins/build.mjs
+// .localhack/build/lib/sift/plugins/build.mjs
 var {COPYFILE_FICLONE} = constants;
-var isJsPath = (path3) => /\.(mjs|js)x?$/.test(path3);
+var isJsPath = (path22) => /\.(mjs|js)x?$/.test(path22);
 function globbing(input) {
   const globs = input.glob;
   if (!globs)
     return;
   return (state2) => async (send2) => {
-    for await (const path3 of fg.stream(root2(globs), {
+    for await (const path22 of fg.stream(root2(globs), {
       dot: true,
       absolute: true
     })) {
-      send2({path: path3, name: file(path3), ext: extname(path3)});
+      send2({path: path22, name: file(path22), ext: extname(path22)});
     }
   };
 }
@@ -454,11 +454,11 @@ function reading(input) {
     return;
   if (exists(input.text))
     return;
-  const {path: path3} = input;
+  const {path: path22} = input;
   input.reading = true;
   return (state2) => async (send2) => {
-    const text = await readFile(path3).then(String);
-    send2({path: path3, text, persisted: true, reading: false});
+    const text = await readFile(path22).then(String);
+    send2({path: path22, text, persisted: true, reading: false});
   };
 }
 function writing(input) {
@@ -470,29 +470,29 @@ function writing(input) {
     return;
   if (isNil(input.text))
     return;
-  const {path: path3, text} = input;
+  const {path: path22, text} = input;
   const mode = text.startsWith("#!") ? 493 : 420;
   return (state2) => async (send2) => {
-    await mkdir(dirname(path3), {recursive: true});
-    await writeFile(path3, text, {
+    await mkdir(dirname(path22), {recursive: true});
+    await writeFile(path22, text, {
       mode
     });
-    console.log(`${chalk4.green("Wrote")}: ${file(path3)}`);
-    send2({path: path3, persisted: true});
+    console.log(`${chalk22.green("Wrote")}: ${file(path22)}`);
+    send2({path: path22, persisted: true});
   };
 }
 function transpiling(input) {
-  const {name, path: path3, text} = input;
-  if (!path3)
+  const {name, path: path22, text} = input;
+  if (!path22)
     return;
   if (!text)
     return;
-  if (!/\/src\/.+\.(mjs|js)x?$/.test(path3))
+  if (!/\/src\/.+\.(mjs|js)x?$/.test(path22))
     return;
-  const outputPath = path3.replace(/\.(\w+)$/, ".mjs").replace("/src/", "/.localhack/build/");
+  const outputPath = path22.replace(/\.(\w+)$/, ".mjs").replace("/src/", "/.localhack/build/");
   return (state2) => async (send2) => {
     const {code} = await Esbuild.transform(text, {
-      sourcefile: name != null ? name : path3,
+      sourcefile: name != null ? name : path22,
       target: "node12"
     });
     send2({
@@ -544,9 +544,9 @@ function watching(input) {
     (_a = state2.watcher) != null ? _a : state2.watcher = watch(src(), {recursive: true}, async (event, relativePath) => {
       if (event !== "change")
         return;
-      const path3 = src(relativePath);
-      const stats = await stat(path3);
-      send2({path: path3, watching: true, modifiedAt: stats.mtime.toISOString()});
+      const path22 = src(relativePath);
+      const stats = await stat(path22);
+      send2({path: path22, watching: true, modifiedAt: stats.mtime.toISOString()});
     });
   };
 }
@@ -563,7 +563,7 @@ var all3 = [
   all2
 ];
 
-// src/entries/cli.mjs
+// .localhack/build/entries/cli.mjs
 import electron2 from "electron";
 import {execFile, spawn} from "child_process";
 var cwd = process.cwd();
@@ -589,7 +589,7 @@ function cli(input) {
         case "build":
           return send2(buildCmd);
         case "dist":
-          return send2(distCmd);
+          return send2(buildCmd, distCmd);
         case "test":
           return send2(testCmd);
         case "watch":
@@ -624,7 +624,7 @@ function buildCmd(input) {
 function distCmd(input) {
   if (input !== distCmd)
     return;
-  const dist2 = "src/entries/*.{html,ts,js,mjs}";
+  const dist2 = build("entries/*.{html,ts,js,mjs}");
   return (state2) => (send2) => {
     if (state2.args.includes("--watch"))
       send2(watchCmd);

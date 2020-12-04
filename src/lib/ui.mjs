@@ -1,4 +1,4 @@
-export { html, render } from "../../node_modules/lit-html/lit-html.js"
+export { html, render } from "lit-html"
 
 export function register(Comp) {
   if (superclass(Comp) === HTMLElement) {

@@ -1,4 +1,4 @@
-import { render, html } from "../../lib/ui.js"
+import { render, html } from "../../lib/ui.mjs"
 
 export class UiButton extends HTMLElement {
   static template = html`

@@ -1,4 +1,4 @@
-// src/lib/testing.mjs
+// .localhack/build/lib/testing.mjs
 import {strict, AssertionError} from "assert";
 import chalk2 from "chalk";
 var dot = chalk2.green("\u2713");
@@ -70,7 +70,7 @@ function callingFilename() {
   }
 }
 
-// src/lib/sift/edit.mjs
+// .localhack/build/lib/sift/edit.mjs
 import {
   produce,
   isDraft,
@@ -78,7 +78,7 @@ import {
   original as originalIm
 } from "immer";
 
-// src/lib/sift/reify.mjs
+// .localhack/build/lib/sift/reify.mjs
 var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
 var T = {
   Number: (x) => Number(One(x)),
@@ -109,7 +109,7 @@ var T = {
   }
 };
 
-// src/lib/sift/edit.mjs
+// .localhack/build/lib/sift/edit.mjs
 var reify2 = (desc) => (state2) => {
   for (const [k, as] of entries(desc)) {
     state2[k] = as(state2[k]);
@@ -207,7 +207,7 @@ test(isModified, ({eq: eq2}) => {
   });
 });
 
-// src/lib/sift/core.mjs
+// .localhack/build/lib/sift/core.mjs
 import {produce as produce2} from "immer";
 var sift = (...inputs) => {
   const send2 = make(originalPlugin);
@@ -274,18 +274,18 @@ test(make, ({eq: eq2}) => {
     (_a = state2.count) != null ? _a : state2.count = 0;
     state2.count++;
   }, (input) => {
-  }, (input) => input.testing = true, (input) => (state2) => (send3) => {
+  }, (input) => input.testing = true, (input) => (state2) => (send22) => {
     if (state2.count === 4)
-      send3({msg: "count is 4!"});
+      send22({msg: "count is 4!"});
   });
   eq2(send2({}), [{testing: true}]);
   eq2(send2.state.count, 6);
 });
 
-// src/lib/fns.mjs
+// .localhack/build/lib/fns.mjs
 var pre = (fn, ...parts) => (...args) => fn(...parts, ...args);
 
-// src/lib/sift/plugins/memory.mjs
+// .localhack/build/lib/sift/plugins/memory.mjs
 import {v4 as uuid2} from "uuid";
 var acceptIndexes = (input) => (state2) => {
   var _a, _b;
@@ -351,7 +351,7 @@ var memory_default = [
   writeToCache
 ];
 
-// src/lib/sift/std.mjs
+// .localhack/build/lib/sift/std.mjs
 var alias = (input) => {
   if (typeof input.alias === "string")
     state[input.alias] = input;
@@ -370,11 +370,11 @@ var trace = (input) => {
 var standard = [memory_default, config, alias];
 var debugging = [trace];
 
-// src/lib/sift/plugins/windows.mjs
+// .localhack/build/lib/sift/plugins/windows.mjs
 import electron2 from "electron";
 import "path";
 
-// src/lib/project.mjs
+// .localhack/build/lib/project.mjs
 import {resolve, relative} from "path";
 var root2 = (...paths) => resolve(process.cwd(), ...paths);
 var src = pre(root2, "src");
@@ -383,7 +383,7 @@ var local = pre(root2, ".localhack");
 var build = pre(local, "build");
 var dist = pre(root2, "dist");
 
-// src/lib/sift/plugins/windows.mjs
+// .localhack/build/lib/sift/plugins/windows.mjs
 var {app, BrowserWindow} = electron2;
 var windows = (send2) => {
   app.on("activate", onActivate);
@@ -395,22 +395,22 @@ var windows = (send2) => {
     var _a, _b, _c, _d, _e, _f, _g;
     (_a = state2.appReady) != null ? _a : state2.appReady = false;
     (_b = state2.windows) != null ? _b : state2.windows = {};
-    const {windows: windows3} = state2;
-    (_c = windows3.index) != null ? _c : windows3.index = new Map();
-    (_d = windows3.queue) != null ? _d : windows3.queue = [];
+    const {windows: windows22} = state2;
+    (_c = windows22.index) != null ? _c : windows22.index = new Map();
+    (_d = windows22.queue) != null ? _d : windows22.queue = [];
     if (input.appReady)
       state2.appReady = true;
     if (input.windowClosedId)
-      windows3.index.delete(input.windowClosedId);
+      windows22.index.delete(input.windowClosedId);
     if (input.window)
-      windows3.queue.push(input.window);
+      windows22.queue.push(input.window);
     if (!state2.appReady)
       return;
     for (const id of (_e = input.closeWindows) != null ? _e : []) {
       (_f = state2.windows.index.get(id)) == null ? void 0 : _f.close();
     }
     let req;
-    while (req = windows3.queue.pop()) {
+    while (req = windows22.queue.pop()) {
       const win = new BrowserWindow({
         ...req.options,
         webPreferences: {
@@ -437,7 +437,7 @@ var windows = (send2) => {
   }
 };
 
-// src/entries/main.mjs
+// .localhack/build/entries/main.mjs
 var send = sift();
 send(standard, debugging, windows(send));
 send({

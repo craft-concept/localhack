@@ -1,4 +1,4 @@
-// src/entries/electron.js
+// .localhack/build/entries/electron.mjs
 var [bin, cmd, entry] = process.argv;
 var chalk = require("chalk");
 import(`./${entry}`).catch((err) => {

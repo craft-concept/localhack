@@ -1,12 +1,3 @@
-var __defProp = Object.defineProperty;
-var __publicField = (obj, key, value) => {
-  if (typeof key !== "symbol")
-    key += "";
-  if (key in obj)
-    return __defProp(obj, key, {enumerable: true, configurable: true, writable: true, value});
-  return obj[key] = value;
-};
-
 // node_modules/lit-html/lib/directive.js
 /**
  * @license
@@ -780,7 +771,7 @@ if (typeof window !== "undefined") {
 }
 var html = (strings, ...values) => new TemplateResult(strings, values, "html", defaultTemplateProcessor);
 
-// src/lib/ui.js
+// .localhack/build/lib/ui.mjs
 function register(Comp) {
   if (superclass(Comp) === HTMLElement) {
     customElements.define(tagName(Comp), Comp);
@@ -802,7 +793,15 @@ function extendsName(Comp) {
   return tagName(superclass(Comp));
 }
 
-// src/components/ui-button/UiButton.js
+// .localhack/build/components/ui-button/UiButton.mjs
+var __defProp = Object.defineProperty;
+var __publicField = (obj, key, value) => {
+  if (typeof key !== "symbol")
+    key += "";
+  if (key in obj)
+    return __defProp(obj, key, {enumerable: true, configurable: true, writable: true, value});
+  return obj[key] = value;
+};
 var UiButton = class extends HTMLElement {
   constructor() {
     super();
@@ -814,6 +813,6 @@ __publicField(UiButton, "template", html`
     <button @click=${() => console.log("hi")}><slot /></button>
   `);
 
-// src/entries/renderer.mjs
+// .localhack/build/entries/renderer.mjs
 console.log("Hello from the renderer thread!");
 register(UiButton);

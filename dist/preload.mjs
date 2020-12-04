@@ -1,4 +1,4 @@
-// src/entries/preload.js
+// .localhack/build/entries/preload.mjs
 window.addEventListener("DOMContentLoaded", () => {
   const replaceText = (selector, text) => {
     const element = document.getElementById(selector);
