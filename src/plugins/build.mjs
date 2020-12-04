@@ -78,14 +78,13 @@ export function transpiling(input) {
   if (!text) return
   if (!/\/src\/.+\.(mjs|js)x?$/.test(path)) return
 
-  const outputPath = path
-    .replace(/\.(\w+)$/, ".mjs")
-    .replace("/src/", "/.localhack/build/")
+  const outputPath = path.replace("/src/", "/.localhack/build/")
 
   return state => async send => {
     const { code } = await Esbuild.transform(text, {
       sourcefile: name ?? path,
       target: "node12",
+      format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
     })
 
     send({
@@ -120,6 +119,7 @@ export function bundling(input) {
         "markdown-it",
         "react",
         "uuid",
+        "vscode",
         "yaml",
       ],
       outdir: project.dist(),

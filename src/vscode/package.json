@@ -1,0 +1,25 @@
+{
+  "name": "localhack-vscode",
+  "displayName": "🧰 LocalHack",
+  "version": "0.0.1",
+  "publisher": "craft-concept",
+  "repository": "https://github.com/craft-concept/localhack/src/vscode",
+  "main": "../../.localhack/build/vscode/extension.js",
+  "engines": {
+    "vscode": "^1.32.0"
+  },
+  "activationEvents": [
+    "onCommand:localhack.helloWorld"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "localhack.helloWorld",
+        "title": "🧰 LocalHack: Hello World"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.32.0"
+  }
+}

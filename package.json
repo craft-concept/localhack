@@ -1,5 +1,9 @@
 {
+  "private": true,
   "name": "localhack",
+  "workspaces": [
+    "src/vscode"
+  ],
   "version": "0.1.0",
   "description": "Build sharable tools quickly without servers.",
   "author": "Jeff Peterson <jeff@yak.sh>",
