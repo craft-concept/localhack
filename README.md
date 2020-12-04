@@ -12,5 +12,5 @@ It's an idea we find interesting and are excited to give it a try.
 
 LocalHack implements its own data-architecture called [Sift][sift].
 
-[sift]: src/lib/sift/README.md
-[literate]: src/lib/sift/plugins/Literate.md
+[sift]: src/lib/Sift.md
+[literate]: src/plugins/Literate.md
