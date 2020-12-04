@@ -21,10 +21,16 @@ var throws = (err, fn) => {
 };
 if (process.env.NODE_ENV === "test")
   log("\nRunning tests...\n\n");
+var previousFilename = "";
 var test = (subject, fn) => {
   if (process.env.NODE_ENV !== "test")
     return;
-  log(`Testing ${chalk2.yellow(subject.name || subject)}: `);
+  const filename = callingFilename();
+  if (filename !== previousFilename) {
+    console.log("\n" + filename);
+    previousFilename = filename;
+  }
+  log(`  ${chalk2.yellow(subject.name || subject)}: `);
   try {
     fn({eq, throws});
     log("\n");
@@ -44,6 +50,27 @@ var test = (subject, fn) => {
   }
 };
 var backtrace = (err) => err.stack.split("\n").filter((line) => /^\s*at ./.test(line)).join("\n");
+function* stackDetails(err) {
+  const matches = err.stack.matchAll(/ +at.*[( ](?:\w+:\/\/)?(.+):(\d+):(\d+)/g);
+  for (const [match, path3, line, col] of matches) {
+    const name = path3.replace(/^.*\/(build|src)\//, "");
+    yield {
+      name,
+      path: path3,
+      line: Number(line),
+      col: Number(col)
+    };
+  }
+}
+function callingFilename() {
+  const err = new Error();
+  let current2;
+  for (const {name} of stackDetails(err)) {
+    current2 != null ? current2 : current2 = name;
+    if (name !== current2)
+      return name;
+  }
+}
 
 // src/lib/sift/edit.mjs
 import {
@@ -53,50 +80,67 @@ import {
   original as originalIm
 } from "immer";
 
-// src/lib/sift/convert.mjs
-var Set2 = (x) => x instanceof Set2 ? x : new Set2(Iterable(x));
-var Array = (x) => Array.isArray(x) ? x : [...Iterable(x)];
-var Iterable = (x) => {
-  if (x == null)
-    return [];
-  if (x instanceof Map)
-    return x.keys();
-  if (Symbol.iterator in x)
-    return x;
-  return [x];
+// src/lib/sift/reify.mjs
+var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
+var T = {
+  Number: (x) => Number(One(x)),
+  String: (x) => String(One(x)),
+  Boolean: (x) => Boolean(One(x)),
+  Set: (x) => x instanceof Set ? x : new Set(T.Iterable(x)),
+  Array: (x) => Array.isArray(x) ? x : [...T.Iterable(x)],
+  Object: (x) => {
+    if (x == null)
+      return {};
+    if (isObj(x))
+      return x;
+    return {};
+  },
+  Iterable: (x) => {
+    if (x == null)
+      return [];
+    if (x instanceof Map)
+      return x.keys();
+    if (typeof x === "object" && Symbol.iterator in x)
+      return x;
+    return [x];
+  },
+  One: (x) => {
+    for (const v of T.Iterable(x)) {
+      return v;
+    }
+  }
 };
 
 // src/lib/sift/edit.mjs
 var isNil = (x) => x == null;
 var exists = (x) => x != null;
-var reify = (desc) => (state2) => {
+var reify2 = (desc) => (state2) => {
   for (const [k, as] of entries(desc)) {
     state2[k] = as(state2[k]);
   }
   return state2;
 };
-test(reify, ({eq: eq2}) => {
+test(reify2, ({eq: eq2}) => {
   const state2 = {
     number: 12,
     string: "something"
   };
-  eq2(reify({
-    number: Array,
-    string: Set2
+  eq2(reify2({
+    number: T.Array,
+    string: T.Set
   })(state2), {
     number: [12],
     string: new Set(["something"])
   });
 });
-var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
-function* iter2(x) {
+function* iter(x) {
   if (x == null)
     return;
   if (x instanceof Map)
     x = x.keys();
   if (typeof x === "object" && Symbol.iterator in x) {
     for (const xa of x)
-      yield* iter2(xa);
+      yield* iter(xa);
   } else {
     yield x;
   }
@@ -111,17 +155,17 @@ function* entries(obj) {
     for (const k in obj)
       yield [k, obj[k]];
 }
-test(iter2, ({eq: eq2}) => {
-  eq2([...iter2()], []);
-  eq2([...iter2(null)], []);
-  eq2([...iter2(void 0)], []);
-  eq2([...iter2(1)], [1]);
-  eq2([...iter2([1])], [1]);
-  eq2([...iter2([1, [2, 3], 4])], [1, 2, 3, 4]);
+test(iter, ({eq: eq2}) => {
+  eq2([...iter()], []);
+  eq2([...iter(null)], []);
+  eq2([...iter(void 0)], []);
+  eq2([...iter(1)], [1]);
+  eq2([...iter([1])], [1]);
+  eq2([...iter([1, [2, 3], 4])], [1, 2, 3, 4]);
 });
 var iterMap = (fn) => function* iterMap2(...xs) {
-  for (const v of iter2(xs))
-    yield* iter2(fn(v));
+  for (const v of iter(xs))
+    yield* iter(fn(v));
 };
 test(iterMap, ({eq: eq2}) => {
   const inc = (x) => x + 1;
@@ -180,7 +224,7 @@ var root = () => {
   send2.next = () => {
   };
   send2.meta = (...fns3) => {
-    for (const fn of iter2(fns3))
+    for (const fn of iter(fns3))
       send2.next = fn(send2) || send2.next;
     return send2;
   };
@@ -193,7 +237,7 @@ var originalPlugin = ({send: send2}) => (inputs) => {
   var _a, _b;
   if (send2.sending) {
     send2.queue || (send2.queue = []);
-    send2.queue.push(...iter2(inputs));
+    send2.queue.push(...iter(inputs));
     return inputs;
   }
   send2.sending = true;
@@ -202,7 +246,7 @@ var originalPlugin = ({send: send2}) => (inputs) => {
     send2.state = produce2(send2.state, (state2) => {
       var _a2;
       (_a2 = state2.plugins) != null ? _a2 : state2.plugins = [];
-      for (const input of iter2(inputs2)) {
+      for (const input of iter(inputs2)) {
         if (typeof input === "function")
           state2.plugins.push(input);
         runWith(state2.plugins, input, state2, send2);
@@ -216,10 +260,10 @@ var originalPlugin = ({send: send2}) => (inputs) => {
   return result;
 };
 var isFunction = (x) => typeof x === "function";
-var apply = (fn, x) => [...iter2(fn(x))].filter(isFunction);
+var apply = (fn, x) => [...iter(fn(x))].filter(isFunction);
 var run = (fns3, x) => {
   const out = [];
-  for (const fn of iter2(fns3))
+  for (const fn of iter(fns3))
     out.push(...apply(fn, x));
   return out;
 };
@@ -255,42 +299,61 @@ var acceptIndexes = (input) => (state2) => {
     (_b = state2[name]) != null ? _b : state2[name] = state2[name];
   }
 };
-var findId = (input) => (state2) => {
+function findId(input) {
   if (input.id)
     return;
-  for (const [name, indexer] of entries(state2.indexers)) {
-    const index = state2[name];
-    if (!index)
-      return;
-    for (const key of iter2(indexer(input))) {
-      if (index[key]) {
-        input.id = index[key];
+  return (state2) => {
+    for (const [name, indexer] of entries(state2.indexers)) {
+      const index = state2[name];
+      if (!index)
         return;
+      for (const key of iter(indexer(input))) {
+        if (index[key]) {
+          input.id = index[key];
+          return;
+        }
       }
     }
-  }
-};
+  };
+}
 var populateFromId = (input) => (state2) => {
-  var _a, _b, _c, _d, _e, _f;
-  (_a = state2.byId) != null ? _a : state2.byId = {};
-  (_b = input.id) != null ? _b : input.id = uuid2();
-  (_c = input.createdAt) != null ? _c : input.createdAt = new Date().toISOString();
-  const cache = (_f = (_d = state2.byId)[_e = input.id]) != null ? _f : _d[_e] = {};
-  deepAssign(cache, current(input));
-  deepAssign(input, current(cache));
-};
-var writeIndexes = (input) => (state2) => {
   var _a;
   if (!input.id)
     return;
+  (_a = state2.byId) != null ? _a : state2.byId = {};
+  const cached = state2.byId[input.id];
+  if (cached) {
+    deepAssign(cached, current(input));
+    deepAssign(input, current(cached));
+  }
+};
+var writeIndexes = (input) => (state2) => {
+  var _a, _b, _c;
   for (const [name, indexer] of entries(state2.indexers)) {
     (_a = state2[name]) != null ? _a : state2[name] = {};
-    for (const key of iter2(indexer(input))) {
+    for (const key of iter(indexer(input))) {
+      (_b = input.id) != null ? _b : input.id = uuid2();
+      (_c = input.createdAt) != null ? _c : input.createdAt = new Date().toISOString();
       state2[name][key] = input.id;
     }
   }
 };
-var memory_default = [acceptIndexes, findId, populateFromId, writeIndexes];
+function writeToCache(input) {
+  var _a, _b, _c, _d;
+  if (!input.id)
+    return;
+  (_a = state.byId) != null ? _a : state.byId = {};
+  const cached = (_d = (_b = state.byId)[_c = input.id]) != null ? _d : _b[_c] = {};
+  deepAssign(cached, current(input));
+  deepAssign(input, current(cached));
+}
+var memory_default = [
+  acceptIndexes,
+  findId,
+  populateFromId,
+  writeIndexes,
+  writeToCache
+];
 
 // src/lib/sift/std.mjs
 var alias = (input) => {
@@ -476,7 +539,7 @@ function cli(input) {
         case "dist":
           return send2(distCmd);
         case "test":
-          return send2(buildCmd, testCmd);
+          return send2(testCmd);
         case "watch":
           return send2(buildCmd, watchCmd);
         case "ui":
@@ -519,15 +582,6 @@ function distCmd(input) {
 function testCmd(input) {
   if (input !== testCmd)
     return;
-  return (state2) => {
-    const globs = [...iter(state2.args)];
-    if (!globs.length)
-      globs.push("entries/test.mjs");
-    spawn(electron2, [file("build/entries/electron.js"), state2.args[0]], {env: {ELECTRON_RUN_AS_NODE: "1", NODE_ENV: "test"}}, (err) => {
-      if (err)
-        return console.error(err);
-    });
-  };
 }
 function uiCmd(input) {
   if (input !== uiCmd)

@@ -19,10 +19,16 @@ var throws = (err, fn) => {
 };
 if (process.env.NODE_ENV === "test")
   log("\nRunning tests...\n\n");
+var previousFilename = "";
 var test = (subject, fn) => {
   if (process.env.NODE_ENV !== "test")
     return;
-  log(`Testing ${chalk2.yellow(subject.name || subject)}: `);
+  const filename = callingFilename();
+  if (filename !== previousFilename) {
+    console.log("\n" + filename);
+    previousFilename = filename;
+  }
+  log(`  ${chalk2.yellow(subject.name || subject)}: `);
   try {
     fn({eq, throws});
     log("\n");
@@ -42,6 +48,27 @@ var test = (subject, fn) => {
   }
 };
 var backtrace = (err) => err.stack.split("\n").filter((line) => /^\s*at ./.test(line)).join("\n");
+function* stackDetails(err) {
+  const matches = err.stack.matchAll(/ +at.*[( ](?:\w+:\/\/)?(.+):(\d+):(\d+)/g);
+  for (const [match, path2, line, col] of matches) {
+    const name = path2.replace(/^.*\/(build|src)\//, "");
+    yield {
+      name,
+      path: path2,
+      line: Number(line),
+      col: Number(col)
+    };
+  }
+}
+function callingFilename() {
+  const err = new Error();
+  let current2;
+  for (const {name} of stackDetails(err)) {
+    current2 != null ? current2 : current2 = name;
+    if (name !== current2)
+      return name;
+  }
+}
 
 // src/lib/sift/edit.mjs
 import {
@@ -51,40 +78,57 @@ import {
   original as originalIm
 } from "immer";
 
-// src/lib/sift/convert.mjs
-var Set2 = (x) => x instanceof Set2 ? x : new Set2(Iterable(x));
-var Array = (x) => Array.isArray(x) ? x : [...Iterable(x)];
-var Iterable = (x) => {
-  if (x == null)
-    return [];
-  if (x instanceof Map)
-    return x.keys();
-  if (Symbol.iterator in x)
-    return x;
-  return [x];
+// src/lib/sift/reify.mjs
+var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
+var T = {
+  Number: (x) => Number(One(x)),
+  String: (x) => String(One(x)),
+  Boolean: (x) => Boolean(One(x)),
+  Set: (x) => x instanceof Set ? x : new Set(T.Iterable(x)),
+  Array: (x) => Array.isArray(x) ? x : [...T.Iterable(x)],
+  Object: (x) => {
+    if (x == null)
+      return {};
+    if (isObj(x))
+      return x;
+    return {};
+  },
+  Iterable: (x) => {
+    if (x == null)
+      return [];
+    if (x instanceof Map)
+      return x.keys();
+    if (typeof x === "object" && Symbol.iterator in x)
+      return x;
+    return [x];
+  },
+  One: (x) => {
+    for (const v of T.Iterable(x)) {
+      return v;
+    }
+  }
 };
 
 // src/lib/sift/edit.mjs
-var reify = (desc) => (state2) => {
+var reify2 = (desc) => (state2) => {
   for (const [k, as] of entries(desc)) {
     state2[k] = as(state2[k]);
   }
   return state2;
 };
-test(reify, ({eq: eq2}) => {
+test(reify2, ({eq: eq2}) => {
   const state2 = {
     number: 12,
     string: "something"
   };
-  eq2(reify({
-    number: Array,
-    string: Set2
+  eq2(reify2({
+    number: T.Array,
+    string: T.Set
   })(state2), {
     number: [12],
     string: new Set(["something"])
   });
 });
-var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
 function* iter(x) {
   if (x == null)
     return;
@@ -251,42 +295,61 @@ var acceptIndexes = (input) => (state2) => {
     (_b = state2[name]) != null ? _b : state2[name] = state2[name];
   }
 };
-var findId = (input) => (state2) => {
+function findId(input) {
   if (input.id)
     return;
-  for (const [name, indexer] of entries(state2.indexers)) {
-    const index = state2[name];
-    if (!index)
-      return;
-    for (const key of iter(indexer(input))) {
-      if (index[key]) {
-        input.id = index[key];
+  return (state2) => {
+    for (const [name, indexer] of entries(state2.indexers)) {
+      const index = state2[name];
+      if (!index)
         return;
+      for (const key of iter(indexer(input))) {
+        if (index[key]) {
+          input.id = index[key];
+          return;
+        }
       }
     }
-  }
-};
+  };
+}
 var populateFromId = (input) => (state2) => {
-  var _a, _b, _c, _d, _e, _f;
-  (_a = state2.byId) != null ? _a : state2.byId = {};
-  (_b = input.id) != null ? _b : input.id = uuid2();
-  (_c = input.createdAt) != null ? _c : input.createdAt = new Date().toISOString();
-  const cache = (_f = (_d = state2.byId)[_e = input.id]) != null ? _f : _d[_e] = {};
-  deepAssign(cache, current(input));
-  deepAssign(input, current(cache));
-};
-var writeIndexes = (input) => (state2) => {
   var _a;
   if (!input.id)
     return;
+  (_a = state2.byId) != null ? _a : state2.byId = {};
+  const cached = state2.byId[input.id];
+  if (cached) {
+    deepAssign(cached, current(input));
+    deepAssign(input, current(cached));
+  }
+};
+var writeIndexes = (input) => (state2) => {
+  var _a, _b, _c;
   for (const [name, indexer] of entries(state2.indexers)) {
     (_a = state2[name]) != null ? _a : state2[name] = {};
     for (const key of iter(indexer(input))) {
+      (_b = input.id) != null ? _b : input.id = uuid2();
+      (_c = input.createdAt) != null ? _c : input.createdAt = new Date().toISOString();
       state2[name][key] = input.id;
     }
   }
 };
-var memory_default = [acceptIndexes, findId, populateFromId, writeIndexes];
+function writeToCache(input) {
+  var _a, _b, _c, _d;
+  if (!input.id)
+    return;
+  (_a = state.byId) != null ? _a : state.byId = {};
+  const cached = (_d = (_b = state.byId)[_c = input.id]) != null ? _d : _b[_c] = {};
+  deepAssign(cached, current(input));
+  deepAssign(input, current(cached));
+}
+var memory_default = [
+  acceptIndexes,
+  findId,
+  populateFromId,
+  writeIndexes,
+  writeToCache
+];
 
 // src/lib/sift/std.mjs
 var alias = (input) => {
