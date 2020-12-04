@@ -40,7 +40,7 @@ function cli(input) {
         case "dist":
           return send(distCmd)
         case "test":
-          return send(buildCmd, testCmd)
+          return send(testCmd)
         case "watch":
           return send(buildCmd, watchCmd)
         case "ui":
@@ -85,20 +85,6 @@ function distCmd(input) {
 
 function testCmd(input) {
   if (input !== testCmd) return
-
-  return state => {
-    const globs = [...iter(state.args)]
-    if (!globs.length) globs.push("entries/test.mjs")
-
-    spawn(
-      electron,
-      [project.file("build/entries/electron.js"), state.args[0]],
-      { env: { ELECTRON_RUN_AS_NODE: "1", NODE_ENV: "test" } },
-      err => {
-        if (err) return console.error(err)
-      },
-    )
-  }
 }
 
 function uiCmd(input) {

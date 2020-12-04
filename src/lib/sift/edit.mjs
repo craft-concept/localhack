@@ -5,10 +5,10 @@ import {
   current as currentIm,
   original as originalIm,
 } from "immer"
-import * as T from "./convert.mjs"
+import { T, isObj } from "./reify.mjs"
 
 /** Default type conversions. */
-export { T }
+export { T, isObj }
 
 /**
  * Returns whether `x` is null or undefined.
@@ -49,12 +49,6 @@ test(reify, ({ eq }) => {
     },
   )
 })
-
-/** Returns whether the given object a plain Object. */
-export const isObj = obj =>
-  obj != null &&
-  typeof obj === "object" &&
-  Object.getPrototypeOf(obj) === Object.prototype
 
 /**
  * Iterate over a collection of objects. Only Arrays and Sets are themselves also iterated.
