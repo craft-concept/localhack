@@ -1,7 +1,12 @@
+We depend on `immer`, our testing lib, and some local data-structure helpers.
+
+```js
 import { produce } from "immer"
 import { test } from "../testing.mjs"
 import { iter, current, iterate } from "./edit.mjs"
+```
 
+```js
 /** The standard function for making a sift instance */
 export const sift = (...inputs) => {
   const send = make(originalPlugin)
@@ -116,3 +121,4 @@ Set of meta-plugins that gets the raw input, state, and send.
 I guess that'd be the same as simply replacing send.
 
 */
+```
