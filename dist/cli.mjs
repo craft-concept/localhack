@@ -391,6 +391,46 @@ var build = pre(local, "build");
 var dist = pre(root2, "dist");
 var file = (path3) => relative(root2(), path3);
 
+// src/lib/sift/plugins/markdown.mjs
+import MarkdownIt from "markdown-it";
+var md = new MarkdownIt({});
+function parseMarkdown(input) {
+  const {path: path3, text} = input;
+  if (!text)
+    return;
+  if (!path3.endsWith(".md"))
+    return;
+  input.markdown = md.parse(text);
+}
+var all = [parseMarkdown];
+
+// src/lib/sift/plugins/literate.mjs
+function tangle(input) {
+  const {path: path3, markdown: markdown2} = input;
+  if (!path3)
+    return;
+  if (!markdown2)
+    return;
+  return (state2) => (send2) => {
+    var _a, _b;
+    const code = {};
+    for (const node2 of iter(markdown2)) {
+      if (node2.type !== "fence")
+        continue;
+      const blocks = (_b = code[_a = node2.info]) != null ? _b : code[_a] = [];
+      blocks.push(node2.content);
+    }
+    for (const [ext, blocks] of entries(code)) {
+      send2({
+        virtual: true,
+        path: path3.replace(/\.md$/, "." + ext),
+        text: blocks.join("\n\n")
+      });
+    }
+  };
+}
+var all2 = [tangle];
+
 // src/lib/sift/plugins/build.mjs
 var {COPYFILE_FICLONE} = constants;
 var isJsPath = (path3) => /\.(mjs|js)x?$/.test(path3);
@@ -423,6 +463,8 @@ function reading(input) {
 }
 function writing(input) {
   if (input.persisted)
+    return;
+  if (input.virtual)
     return;
   if (!input.path)
     return;
@@ -474,13 +516,15 @@ function bundling(input) {
       format: "esm",
       outExtension: {".js": ".mjs"},
       external: [
+        "chalk",
         "electron",
         "esbuild",
-        "chalk",
-        "uuid",
         "fast-glob",
         "immer",
-        "react"
+        "markdown-it",
+        "react",
+        "uuid",
+        "yaml"
       ],
       outdir: dist(),
       write: false
@@ -509,7 +553,15 @@ function watching(input) {
 var indexers = {
   byPath: (input) => input.path
 };
-var all = [{indexers}, globbing, writing, reading, transpiling];
+var all3 = [
+  {indexers},
+  globbing,
+  writing,
+  reading,
+  transpiling,
+  all,
+  all2
+];
 
 // src/entries/cli.mjs
 import electron2 from "electron";
@@ -517,7 +569,7 @@ import {execFile, spawn} from "child_process";
 var cwd = process.cwd();
 var [node, bin, cmd, ...args] = process.argv;
 var send = sift();
-send(standard, all, cli);
+send(standard, all3, cli);
 send({
   cwd,
   cmd,
@@ -560,7 +612,7 @@ function usageCmd(input) {
 function buildCmd(input) {
   if (input !== buildCmd)
     return;
-  const glob = "src/**/*.{html,ts,js,mjs}";
+  const glob = "src/**/*.{html,ts,js,mjs,md}";
   return (state2) => (send2) => {
     if (state2.args.includes("--watch"))
       send2(watchCmd);
