@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid"
-import { current, iter, entries, deepAssign } from "../edit.mjs"
+import { current, iter, entries, deepAssign } from "../lib/edit.mjs"
 
 /** Records sent indexes. */
 export const acceptIndexes = input => state => {

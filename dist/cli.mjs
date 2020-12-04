@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// .localhack/build/lib/Sift.mjs
+import {produce as produce2} from "immer";
+
 // .localhack/build/lib/testing.mjs
 import {strict, AssertionError} from "assert";
 import chalk2 from "chalk";
@@ -72,7 +75,7 @@ function callingFilename() {
   }
 }
 
-// .localhack/build/lib/sift/edit.mjs
+// .localhack/build/lib/edit.mjs
 import {
   produce,
   isDraft,
@@ -80,7 +83,7 @@ import {
   original as originalIm
 } from "immer";
 
-// .localhack/build/lib/sift/reify.mjs
+// .localhack/build/lib/reify.mjs
 var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
 var T = {
   Number: (x) => Number(One(x)),
@@ -111,7 +114,7 @@ var T = {
   }
 };
 
-// .localhack/build/lib/sift/edit.mjs
+// .localhack/build/lib/edit.mjs
 var isNil = (x) => x == null;
 var exists = (x) => x != null;
 var reify2 = (desc) => (state2) => {
@@ -211,8 +214,7 @@ test(isModified, ({eq: eq2}) => {
   });
 });
 
-// .localhack/build/lib/sift/core.mjs
-import {produce as produce2} from "immer";
+// .localhack/build/lib/Sift.mjs
 var sift = (...inputs) => {
   const send2 = make(originalPlugin);
   send2(...inputs);
@@ -289,7 +291,7 @@ test(make, ({eq: eq2}) => {
 // .localhack/build/lib/fns.mjs
 var pre = (fn, ...parts) => (...args2) => fn(...parts, ...args2);
 
-// .localhack/build/lib/sift/plugins/memory.mjs
+// .localhack/build/plugins/memory.mjs
 import {v4 as uuid2} from "uuid";
 var acceptIndexes = (input) => (state2) => {
   var _a, _b;
@@ -355,7 +357,7 @@ var memory_default = [
   writeToCache
 ];
 
-// .localhack/build/lib/sift/std.mjs
+// .localhack/build/plugins/std.mjs
 var alias = (input) => {
   if (typeof input.alias === "string")
     state[input.alias] = input;
@@ -370,7 +372,7 @@ var config = (input) => {
 };
 var standard = [memory_default, config, alias];
 
-// .localhack/build/lib/sift/plugins/build.mjs
+// .localhack/build/plugins/build.mjs
 import fg from "fast-glob";
 import chalk22 from "chalk";
 import {
@@ -391,7 +393,7 @@ var build = pre(local, "build");
 var dist = pre(root2, "dist");
 var file = (path22) => relative(root2(), path22);
 
-// .localhack/build/lib/sift/plugins/markdown.mjs
+// .localhack/build/plugins/markdown.mjs
 import MarkdownIt from "markdown-it";
 var md = new MarkdownIt({});
 function parseMarkdown(input) {
@@ -404,7 +406,7 @@ function parseMarkdown(input) {
 }
 var all = [parseMarkdown];
 
-// .localhack/build/lib/sift/plugins/literate.mjs
+// .localhack/build/plugins/Literate.mjs
 function tangling(input) {
   const {path: path3, markdown: markdown2} = input;
   if (!path3)
@@ -431,7 +433,7 @@ function tangling(input) {
 }
 var all2 = [tangling];
 
-// .localhack/build/lib/sift/plugins/build.mjs
+// .localhack/build/plugins/build.mjs
 var {COPYFILE_FICLONE} = constants;
 var isJsPath = (path22) => /\.(mjs|js)x?$/.test(path22);
 function globbing(input) {

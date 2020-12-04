@@ -1,4 +1,4 @@
-import { iter } from "../edit.mjs"
+import { iter } from "../lib/edit.mjs"
 
 /**
  * Sends the children of each inputed node.

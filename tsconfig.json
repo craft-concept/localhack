@@ -10,10 +10,10 @@
     "moduleResolution": "node",
     "jsx": "react",
     "jsxFactory": "h",
-    "outDir": "build/tsc",
+    "outDir": ".localhack/tsc",
     "plugins": [{ "name": "typescript-lit-html-plugin" }]
   },
-  "compileOnSave": true,
+  "compileOnSave": false,
   "include": ["src"],
   "exclude": ["**/local.*", "**/*.local.*"]
 }

@@ -1,14 +1,30 @@
-# Sift core
+# Sift
 
-This file is our first attempt at converting LocalHack to a literate programming
-environment. Our hope is that the entirety of the codebase can be written with
-the human reader in mind.
+Sift is an experimental data management library with an architecture similar to
+Flux.
 
-We depend on `immer`, our testing lib, and some local data-structure helpers.
+Note: Keep in mind that sift is just something we're playing around with, and
+could be a terrible idea.
+
+The core of Sift is the plugin. A plugin is a function of this shape:
+`input => state => send => void`
+
+The plugins are a bit strange however, in that both `input` and `state` are
+immer Draft proxy objects. This means that plugins can freely mutate both
+`input` and `state`.
+
+Unlike Flux, the `input` objects are not necessarily actions in the traditional
+form (`{ type: "AddTodo", todo: {...}}`). Instead, the `input` object is simply
+some data you'd like added to the system. The plugins inspect each input object
+to determine if their logic applies. Some plugins might simply decorate the
+`input` object with metadata and not touch the `state` at all.
+
+Let's look at the code. We depend on `immer`, our testing lib, and some local
+data-structure helpers.
 
 ```js
 import { produce } from "immer"
-import { test } from "../testing.mjs"
+import { test } from "./testing.mjs"
 import { iter, current, iterate } from "./edit.mjs"
 ```
 

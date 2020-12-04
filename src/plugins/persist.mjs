@@ -1,4 +1,4 @@
-import { iter } from "../edit.mjs"
+import { iter } from "../lib/edit.mjs"
 
 export const persist = input => state => {
   for (const key of iter(input.persist)) {

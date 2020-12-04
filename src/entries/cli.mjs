@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-import { sift, standard, debugging, current } from "../lib/sift.mjs"
-import * as build from "../lib/sift/plugins/build.mjs"
+import { sift } from "../lib/Sift.mjs"
+import { current } from "../lib/edit.mjs"
+import { standard, debugging } from "../plugins/std.mjs"
+import * as build from "../plugins/build.mjs"
 import * as project from "../lib/project.mjs"
 import electron from "electron"
 import { execFile, spawn } from "child_process"

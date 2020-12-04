@@ -1,4 +1,4 @@
-import { test } from "../testing.mjs"
+import { test } from "./testing.mjs"
 import {
   produce,
   isDraft,

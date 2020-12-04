@@ -1,3 +1,6 @@
+// .localhack/build/lib/Sift.mjs
+import {produce as produce2} from "immer";
+
 // .localhack/build/lib/testing.mjs
 import {strict, AssertionError} from "assert";
 import chalk2 from "chalk";
@@ -70,7 +73,7 @@ function callingFilename() {
   }
 }
 
-// .localhack/build/lib/sift/edit.mjs
+// .localhack/build/lib/edit.mjs
 import {
   produce,
   isDraft,
@@ -78,7 +81,7 @@ import {
   original as originalIm
 } from "immer";
 
-// .localhack/build/lib/sift/reify.mjs
+// .localhack/build/lib/reify.mjs
 var isObj = (obj) => obj != null && typeof obj === "object" && Object.getPrototypeOf(obj) === Object.prototype;
 var T = {
   Number: (x) => Number(One(x)),
@@ -109,7 +112,7 @@ var T = {
   }
 };
 
-// .localhack/build/lib/sift/edit.mjs
+// .localhack/build/lib/edit.mjs
 var reify2 = (desc) => (state2) => {
   for (const [k, as] of entries(desc)) {
     state2[k] = as(state2[k]);
@@ -207,8 +210,7 @@ test(isModified, ({eq: eq2}) => {
   });
 });
 
-// .localhack/build/lib/sift/core.mjs
-import {produce as produce2} from "immer";
+// .localhack/build/lib/Sift.mjs
 var sift = (...inputs) => {
   const send2 = make(originalPlugin);
   send2(...inputs);
@@ -285,7 +287,7 @@ test(make, ({eq: eq2}) => {
 // .localhack/build/lib/fns.mjs
 var pre = (fn, ...parts) => (...args) => fn(...parts, ...args);
 
-// .localhack/build/lib/sift/plugins/memory.mjs
+// .localhack/build/plugins/memory.mjs
 import {v4 as uuid2} from "uuid";
 var acceptIndexes = (input) => (state2) => {
   var _a, _b;
@@ -351,7 +353,7 @@ var memory_default = [
   writeToCache
 ];
 
-// .localhack/build/lib/sift/std.mjs
+// .localhack/build/plugins/std.mjs
 var alias = (input) => {
   if (typeof input.alias === "string")
     state[input.alias] = input;
@@ -370,7 +372,7 @@ var trace = (input) => {
 var standard = [memory_default, config, alias];
 var debugging = [trace];
 
-// .localhack/build/lib/sift/plugins/windows.mjs
+// .localhack/build/plugins/windows.mjs
 import electron2 from "electron";
 import "path";
 
@@ -383,7 +385,7 @@ var local = pre(root2, ".localhack");
 var build = pre(local, "build");
 var dist = pre(root2, "dist");
 
-// .localhack/build/lib/sift/plugins/windows.mjs
+// .localhack/build/plugins/windows.mjs
 var {app, BrowserWindow} = electron2;
 var windows = (send2) => {
   app.on("activate", onActivate);

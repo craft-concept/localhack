@@ -13,6 +13,7 @@
     "./*": "./dist/*.mjs"
   },
   "scripts": {
+    "clean": "rm -r .localhack/build/*",
     "test": "NODE_ENV=test node .localhack/build/entries/cli.mjs test",
     "cli": "node .localhack/build/entries/cli.mjs",
     "build": "yarn cli build",

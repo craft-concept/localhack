@@ -1,6 +1,6 @@
 import electron from "electron"
 import * as Path from "path"
-import * as project from "../../project.mjs"
+import * as project from "../lib/project.mjs"
 
 const { app, BrowserWindow } = electron
 

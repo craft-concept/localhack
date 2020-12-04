@@ -18,7 +18,7 @@ implemented tangling. Weaving is supported well enough by viewing the source on
 github.
 
 ```js
-import { iter, entries } from "../edit.mjs"
+import { iter, entries } from "../lib/edit.mjs"
 ```
 
 First we'll define a plugin that tangles our markdown source.

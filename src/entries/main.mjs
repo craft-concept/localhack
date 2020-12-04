@@ -1,5 +1,7 @@
-import { sift, standard, debugging, current } from "../lib/sift.mjs"
-import { windows } from "../lib/sift/plugins/windows.mjs"
+import { sift } from "../lib/Sift.mjs"
+import { current } from "../lib/edit.mjs"
+import { standard, debugging } from "../plugins/std.mjs"
+import { windows } from "../plugins/windows.mjs"
 
 const send = sift()
 
