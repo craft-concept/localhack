@@ -29,28 +29,6 @@ export function globbing(input) {
 }
 
 /**
- * Plugin that copies source files.
- */
-export function copying(file) {
-  throw new Error("Outdated")
-  if (file.copied) return
-  if (!file.modified) return
-  if (!file.src) return
-  if (!file.dst) return
-  if (!/\.html$/.test(file.src)) return
-
-  return state => {
-    const { src, dst } = (file = current(file))
-
-    return async send => {
-      await mkdir(dirname(dst), { recursive: true })
-      await copyFile(src, dst, COPYFILE_FICLONE)
-      send({ ...file, dst, copied: true })
-    }
-  }
-}
-
-/**
  * Plugin that reads files as text.
  */
 export function reading(input) {
