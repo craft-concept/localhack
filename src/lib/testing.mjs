@@ -27,13 +27,20 @@ export const throws = (err, fn) => {
 
 if (process.env.NODE_ENV === "test") log("\nRunning tests...\n\n")
 
+let previousFilename = ""
 /**
  * Write tests next to the source.
  */
 export const test = (subject, fn) => {
   if (process.env.NODE_ENV !== "test") return
+  const filename = callingFilename()
 
-  log(`Testing ${chalk.yellow(subject.name || subject)}: `)
+  if (filename !== previousFilename) {
+    console.log("\n" + filename)
+    previousFilename = filename
+  }
+
+  log(`  ${chalk.yellow(subject.name || subject)}: `)
   try {
     fn({ eq, throws })
     log("\n")
@@ -59,3 +66,26 @@ export const backtrace = err =>
     .split("\n")
     .filter(line => /^\s*at ./.test(line))
     .join("\n")
+
+export function* stackDetails(err) {
+  const matches = err.stack.matchAll(/ +at.*[( ](?:\w+:\/\/)?(.+):(\d+):(\d+)/g)
+
+  for (const [match, path, line, col] of matches) {
+    const name = path.replace(/^.*\/(build|src)\//, "")
+    yield {
+      name,
+      path,
+      line: Number(line),
+      col: Number(col),
+    }
+  }
+}
+
+export function callingFilename() {
+  const err = new Error()
+  let current
+  for (const { name } of stackDetails(err)) {
+    current ??= name
+    if (name !== current) return name
+  }
+}
