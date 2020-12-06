@@ -19,13 +19,13 @@
     "scope": "markdown",
     "prefix": "js",
     "description": "Create a code block.",
-    "body": ["```js", "$0", "```"]
+    "body": ["```mjs", "$0", "```"]
   },
   "Split Code Block": {
     "scope": "javascript",
     "prefix": "js",
     "description": "Split a code block.",
-    "body": ["```", "$0", "```js"]
+    "body": ["```", "$0", "```mjs"]
   },
   "Import React": {
     "scope": "typescriptreact",
