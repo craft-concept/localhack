@@ -17,13 +17,13 @@ code. _Weaving_ turns our source code into documentation. For now, we've only
 implemented tangling. Weaving is supported well enough by viewing the source on
 github.
 
-```js
+```mjs
 import { iter, entries } from "../lib/edit.mjs"
 ```
 
 First we'll define a plugin that tangles our markdown source.
 
-```js
+```mjs
 export function tangling(input) {
   const { path, markdown } = input
   if (!path) return

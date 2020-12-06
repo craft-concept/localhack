@@ -347,7 +347,7 @@ function writeToCache(input) {
   deepAssign(cached, current(input));
   deepAssign(input, current(cached));
 }
-var memory_default = [
+var stdin_default = [
   acceptIndexes,
   findId,
   populateFromId,
@@ -371,7 +371,7 @@ var config = (input) => {
 var trace = (input) => {
   console.log("input:", current(input));
 };
-var standard = [memory_default, config, alias];
+var standard = [stdin_default, config, alias];
 var debugging = [trace];
 
 // .localhack/build/plugins/build.mjs
@@ -498,7 +498,7 @@ function transpiling(input) {
     const {code} = await Esbuild.transform(text, {
       sourcefile: name != null ? name : path22,
       target: "node12",
-      format: outputPath.endsWith(".mjs") ? "esm" : "cjs"
+      format: "esm"
     });
     send2({
       path: outputPath,

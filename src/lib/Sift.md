@@ -22,7 +22,7 @@ the `input` object with metadata and not touch the `state` at all.
 Let's look at the code. We depend on `immer`, our testing lib, and some local
 data-structure helpers.
 
-```js
+```mjs
 import { produce } from "immer"
 import { test } from "./testing.mjs"
 import { iter, current, iterate } from "./edit.mjs"
@@ -36,7 +36,7 @@ objects. You can feed objects via `self(obj)` or `self.send(obj)`. `send`
 returns an array of the updated inputs as well as any inputs sent internally by
 plugins: `send(a, b) //=> [updatedA, updatedB, other, values]`.
 
-```js
+```mjs
 export function make(...metas) {
   function self(...inputs) {
     return self.send(...inputs)
@@ -66,7 +66,7 @@ This plugin implements:
 - The regular plugin system: send fns to register plugins.
 - The use of immer to produce immutable values between inputs.
 
-```js
+```mjs
 export function originalPlugin({ self }) {
   return (...inputs) => {
     if (self.sending) {
@@ -102,7 +102,7 @@ export function originalPlugin({ self }) {
 
 Next, we define a couple helper functions:
 
-```js
+```mjs
 export const isFunction = x => typeof x === "function"
 
 export const apply = (fn, x) => [...iter(fn(x))].filter(isFunction)
@@ -113,7 +113,7 @@ Each plugin runs in a series of stages: `input => state => send => {}`.
 `run` executes a single stage and collects the returned functions. These
 functions can then be passed to run along with the next stage's input.
 
-```js
+```mjs
 export const run = (fns, x) => {
   const out = []
   for (const fn of iter(fns)) out.push(...apply(fn, x))
@@ -126,7 +126,7 @@ export const run = (fns, x) => {
 `fns` can return another function which receives the next value in the series of
 `steps`.
 
-```js
+```mjs
 export const runWith = (fns, ...steps) => {
   for (const step of steps) {
     fns = run(fns, step)
@@ -137,7 +137,7 @@ export const runWith = (fns, ...steps) => {
 Now we define some tests using our custom testing library. These only run when
 `NODE_ENV=test`.
 
-```js
+```mjs
 test(make, ({ eq }) => {
   const send = sift(
     input => state => {

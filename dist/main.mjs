@@ -53,11 +53,11 @@ var test = (subject, fn) => {
 var backtrace = (err) => err.stack.split("\n").filter((line) => /^\s*at ./.test(line)).join("\n");
 function* stackDetails(err) {
   const matches = err.stack.matchAll(/ +at.*[( ](?:\w+:\/\/)?(.+):(\d+):(\d+)/g);
-  for (const [match, path2, line, col] of matches) {
-    const name = path2.replace(/^.*\/(build|src)\//, "");
+  for (const [match, path3, line, col] of matches) {
+    const name = path3.replace(/^.*\/(build|src)\//, "");
     yield {
       name,
-      path: path2,
+      path: path3,
       line: Number(line),
       col: Number(col)
     };
@@ -343,7 +343,7 @@ function writeToCache(input) {
   deepAssign(cached, current(input));
   deepAssign(input, current(cached));
 }
-var memory_default = [
+var stdin_default = [
   acceptIndexes,
   findId,
   populateFromId,
@@ -367,7 +367,7 @@ var config = (input) => {
 var trace = (input) => {
   console.log("input:", current(input));
 };
-var standard = [memory_default, config, alias];
+var standard = [stdin_default, config, alias];
 var debugging = [trace];
 
 // .localhack/build/plugins/windows.mjs

@@ -84,7 +84,8 @@ export function transpiling(input) {
     const { code } = await Esbuild.transform(text, {
       sourcefile: name ?? path,
       target: "node12",
-      format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
+      // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
+      format: "esm",
     })
 
     send({
