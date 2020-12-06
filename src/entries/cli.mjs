@@ -29,6 +29,8 @@ function cli(input) {
     state.args = current(input.args)
 
     return send => {
+      if (state.args.includes("--debug")) send(debugging)
+
       switch (input.cmd) {
         case undefined:
           return send(usageCmd)
