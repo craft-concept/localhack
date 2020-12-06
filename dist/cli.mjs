@@ -215,52 +215,48 @@ test(isModified, ({eq: eq2}) => {
 });
 
 // .localhack/build/lib/Sift.mjs
-var sift = (...inputs) => {
-  const send2 = make(originalPlugin);
-  send2(...inputs);
-  return send2;
-};
-var make = (...metaPlugins) => root().meta(metaPlugins);
-var root = () => {
-  send2.send = send2;
-  send2.next = () => {
-  };
-  send2.meta = (...fns3) => {
-    for (const fn of iter(fns3))
-      send2.next = fn(send2) || send2.next;
-    return send2;
-  };
-  return send2;
-  function send2(...inputs) {
-    return send2.next(inputs);
+function make(...metas) {
+  function self(...inputs) {
+    return self.send(...inputs);
   }
-};
-var originalPlugin = ({send: send2}) => (inputs) => {
-  var _a, _b;
-  if (send2.sending) {
-    send2.queue || (send2.queue = []);
-    send2.queue.push(...iter(inputs));
-    return inputs;
-  }
-  send2.sending = true;
-  (_a = send2.state) != null ? _a : send2.state = {};
-  const result = produce2(inputs, (inputs2) => {
-    send2.state = produce2(send2.state, (state2) => {
-      var _a2;
-      (_a2 = state2.plugins) != null ? _a2 : state2.plugins = [];
-      for (const input of iter(inputs2)) {
-        if (typeof input === "function")
-          state2.plugins.push(input);
-        runWith(state2.plugins, input, state2, send2);
-      }
+  self.self = self;
+  self.send = (inputs) => self.inputs = inputs;
+  self.meta = (...metas2) => {
+    for (const meta of iter(metas2))
+      self.send = meta(self) || self.send;
+    return self;
+  };
+  self.meta(originalPlugin, ...metas);
+  return self;
+}
+function originalPlugin({self}) {
+  return (...inputs) => {
+    var _a, _b, _c;
+    if (self.sending) {
+      (_a = self.queue) != null ? _a : self.queue = [];
+      self.queue.push(...iter(inputs));
+      return inputs;
+    }
+    self.sending = true;
+    (_b = self.state) != null ? _b : self.state = {};
+    const results = produce2(inputs, (inputs2) => {
+      self.state = produce2(self.state, (state2) => {
+        var _a2;
+        (_a2 = state2.plugins) != null ? _a2 : state2.plugins = [];
+        for (const input of iter(inputs2)) {
+          if (typeof input === "function")
+            state2.plugins.push(input);
+          runWith(state2.plugins, input, state2, self.send);
+        }
+      });
     });
-  });
-  send2.sending = false;
-  const queued = (_b = send2.queue) == null ? void 0 : _b.shift();
-  if (queued)
-    send2(queued);
-  return result;
-};
+    self.sending = false;
+    const queued = (_c = self.queue) == null ? void 0 : _c.shift();
+    if (queued)
+      self.send(queued);
+    return results;
+  };
+}
 var isFunction = (x) => typeof x === "function";
 var apply = (fn, x) => [...iter(fn(x))].filter(isFunction);
 var run = (fns3, x) => {
@@ -292,7 +288,9 @@ test(make, ({eq: eq2}) => {
 var pre = (fn, ...parts) => (...args2) => fn(...parts, ...args2);
 
 // .localhack/build/plugins/memory.mjs
-import {v4 as uuid2} from "uuid";
+import {
+  v4
+} from "uuid";
 var acceptIndexes = (input) => (state2) => {
   var _a, _b;
   (_a = state2.indexers) != null ? _a : state2.indexers = {};
@@ -334,7 +332,7 @@ var writeIndexes = (input) => (state2) => {
   for (const [name, indexer] of entries(state2.indexers)) {
     (_a = state2[name]) != null ? _a : state2[name] = {};
     for (const key of iter(indexer(input))) {
-      (_b = input.id) != null ? _b : input.id = uuid2();
+      (_b = input.id) != null ? _b : input.id = v4();
       (_c = input.createdAt) != null ? _c : input.createdAt = new Date().toISOString();
       state2[name][key] = input.id;
     }
@@ -370,7 +368,11 @@ var config = (input) => {
     deepAssign(state2.config, input.config);
   };
 };
+var trace = (input) => {
+  console.log("input:", current(input));
+};
 var standard = [memory_default, config, alias];
+var debugging = [trace];
 
 // .localhack/build/plugins/build.mjs
 import fg from "fast-glob";
@@ -385,13 +387,13 @@ import {dirname, extname} from "path";
 
 // .localhack/build/lib/project.mjs
 import {resolve, relative} from "path";
-var root2 = (...paths) => resolve(process.cwd(), ...paths);
-var src = pre(root2, "src");
+var root = (...paths) => resolve(process.cwd(), ...paths);
+var src = pre(root, "src");
 var entry = pre(src, "entries");
-var local = pre(root2, ".localhack");
+var local = pre(root, ".localhack");
 var build = pre(local, "build");
-var dist = pre(root2, "dist");
-var file = (path22) => relative(root2(), path22);
+var dist = pre(root, "dist");
+var file = (path22) => relative(root(), path22);
 
 // .localhack/build/plugins/markdown.mjs
 import MarkdownIt from "markdown-it";
@@ -402,7 +404,7 @@ function parseMarkdown(input) {
     return;
   if (!path3.endsWith(".md"))
     return;
-  input.markdown = md.parse(text);
+  input.markdown = md.parse(text, {});
 }
 var all = [parseMarkdown];
 
@@ -441,7 +443,7 @@ function globbing(input) {
   if (!globs)
     return;
   return (state2) => async (send2) => {
-    for await (const path22 of fg.stream(root2(globs), {
+    for await (const path22 of fg.stream(root(globs), {
       dot: true,
       absolute: true
     })) {
@@ -491,11 +493,12 @@ function transpiling(input) {
     return;
   if (!/\/src\/.+\.(mjs|js)x?$/.test(path22))
     return;
-  const outputPath = path22.replace(/\.(\w+)$/, ".mjs").replace("/src/", "/.localhack/build/");
+  const outputPath = path22.replace("/src/", "/.localhack/build/");
   return (state2) => async (send2) => {
     const {code} = await Esbuild.transform(text, {
       sourcefile: name != null ? name : path22,
-      target: "node12"
+      target: "node12",
+      format: outputPath.endsWith(".mjs") ? "esm" : "cjs"
     });
     send2({
       path: outputPath,
@@ -526,6 +529,7 @@ function bundling(input) {
         "markdown-it",
         "react",
         "uuid",
+        "vscode",
         "yaml"
       ],
       outdir: dist(),
@@ -570,7 +574,7 @@ import electron2 from "electron";
 import {execFile, spawn} from "child_process";
 var cwd = process.cwd();
 var [node, bin, cmd, ...args] = process.argv;
-var send = sift();
+var send = make();
 send(standard, all3, cli);
 send({
   cwd,
@@ -585,6 +589,8 @@ function cli(input) {
     state2.cmd = input.cmd;
     state2.args = current(input.args);
     return (send2) => {
+      if (state2.args.includes("--debug"))
+        send2(debugging);
       switch (input.cmd) {
         case void 0:
           return send2(usageCmd);

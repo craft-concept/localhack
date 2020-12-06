@@ -211,52 +211,48 @@ test(isModified, ({eq: eq2}) => {
 });
 
 // .localhack/build/lib/Sift.mjs
-var sift = (...inputs) => {
-  const send2 = make(originalPlugin);
-  send2(...inputs);
-  return send2;
-};
-var make = (...metaPlugins) => root().meta(metaPlugins);
-var root = () => {
-  send2.send = send2;
-  send2.next = () => {
-  };
-  send2.meta = (...fns3) => {
-    for (const fn of iter(fns3))
-      send2.next = fn(send2) || send2.next;
-    return send2;
-  };
-  return send2;
-  function send2(...inputs) {
-    return send2.next(inputs);
+function make(...metas) {
+  function self(...inputs) {
+    return self.send(...inputs);
   }
-};
-var originalPlugin = ({send: send2}) => (inputs) => {
-  var _a, _b;
-  if (send2.sending) {
-    send2.queue || (send2.queue = []);
-    send2.queue.push(...iter(inputs));
-    return inputs;
-  }
-  send2.sending = true;
-  (_a = send2.state) != null ? _a : send2.state = {};
-  const result = produce2(inputs, (inputs2) => {
-    send2.state = produce2(send2.state, (state2) => {
-      var _a2;
-      (_a2 = state2.plugins) != null ? _a2 : state2.plugins = [];
-      for (const input of iter(inputs2)) {
-        if (typeof input === "function")
-          state2.plugins.push(input);
-        runWith(state2.plugins, input, state2, send2);
-      }
+  self.self = self;
+  self.send = (inputs) => self.inputs = inputs;
+  self.meta = (...metas2) => {
+    for (const meta of iter(metas2))
+      self.send = meta(self) || self.send;
+    return self;
+  };
+  self.meta(originalPlugin, ...metas);
+  return self;
+}
+function originalPlugin({self}) {
+  return (...inputs) => {
+    var _a, _b, _c;
+    if (self.sending) {
+      (_a = self.queue) != null ? _a : self.queue = [];
+      self.queue.push(...iter(inputs));
+      return inputs;
+    }
+    self.sending = true;
+    (_b = self.state) != null ? _b : self.state = {};
+    const results = produce2(inputs, (inputs2) => {
+      self.state = produce2(self.state, (state2) => {
+        var _a2;
+        (_a2 = state2.plugins) != null ? _a2 : state2.plugins = [];
+        for (const input of iter(inputs2)) {
+          if (typeof input === "function")
+            state2.plugins.push(input);
+          runWith(state2.plugins, input, state2, self.send);
+        }
+      });
     });
-  });
-  send2.sending = false;
-  const queued = (_b = send2.queue) == null ? void 0 : _b.shift();
-  if (queued)
-    send2(queued);
-  return result;
-};
+    self.sending = false;
+    const queued = (_c = self.queue) == null ? void 0 : _c.shift();
+    if (queued)
+      self.send(queued);
+    return results;
+  };
+}
 var isFunction = (x) => typeof x === "function";
 var apply = (fn, x) => [...iter(fn(x))].filter(isFunction);
 var run = (fns3, x) => {
@@ -288,7 +284,9 @@ test(make, ({eq: eq2}) => {
 var pre = (fn, ...parts) => (...args) => fn(...parts, ...args);
 
 // .localhack/build/plugins/memory.mjs
-import {v4 as uuid2} from "uuid";
+import {
+  v4
+} from "uuid";
 var acceptIndexes = (input) => (state2) => {
   var _a, _b;
   (_a = state2.indexers) != null ? _a : state2.indexers = {};
@@ -330,7 +328,7 @@ var writeIndexes = (input) => (state2) => {
   for (const [name, indexer] of entries(state2.indexers)) {
     (_a = state2[name]) != null ? _a : state2[name] = {};
     for (const key of iter(indexer(input))) {
-      (_b = input.id) != null ? _b : input.id = uuid2();
+      (_b = input.id) != null ? _b : input.id = v4();
       (_c = input.createdAt) != null ? _c : input.createdAt = new Date().toISOString();
       state2[name][key] = input.id;
     }
@@ -378,12 +376,12 @@ import "path";
 
 // .localhack/build/lib/project.mjs
 import {resolve, relative} from "path";
-var root2 = (...paths) => resolve(process.cwd(), ...paths);
-var src = pre(root2, "src");
+var root = (...paths) => resolve(process.cwd(), ...paths);
+var src = pre(root, "src");
 var entry = pre(src, "entries");
-var local = pre(root2, ".localhack");
+var local = pre(root, ".localhack");
 var build = pre(local, "build");
-var dist = pre(root2, "dist");
+var dist = pre(root, "dist");
 
 // .localhack/build/plugins/windows.mjs
 var {app, BrowserWindow} = electron2;
@@ -440,7 +438,7 @@ var windows = (send2) => {
 };
 
 // .localhack/build/entries/main.mjs
-var send = sift();
+var send = make();
 send(standard, debugging, windows(send));
 send({
   window: {
