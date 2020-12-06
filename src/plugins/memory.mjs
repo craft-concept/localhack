@@ -1,5 +1,11 @@
-import { v4 as uuid } from "uuid"
+import * as uuid from "uuid"
 import { current, iter, entries, deepAssign } from "../lib/edit.mjs"
+
+export function handleFunctionIds(input) {
+  if (typeof input.id !== "function") return
+
+  input.id = input.id(uuid.v4)
+}
 
 /** Records sent indexes. */
 export const acceptIndexes = input => state => {
@@ -55,7 +61,7 @@ export const writeIndexes = input => state => {
     state[name] ??= {}
 
     for (const key of iter(indexer(input))) {
-      input.id ??= uuid()
+      input.id ??= uuid.v4()
       input.createdAt ??= new Date().toISOString()
 
       state[name][key] = input.id

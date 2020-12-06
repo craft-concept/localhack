@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { sift } from "../lib/Sift.mjs"
+import { make } from "../lib/Sift.mjs"
 import { current } from "../lib/edit.mjs"
 import { standard, debugging } from "../plugins/std.mjs"
 import * as build from "../plugins/build.mjs"
@@ -10,7 +10,7 @@ import { execFile, spawn } from "child_process"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
-const send = sift()
+const send = make()
 
 send(standard, build.all, cli)
 

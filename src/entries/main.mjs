@@ -1,9 +1,9 @@
-import { sift } from "../lib/Sift.mjs"
+import { make } from "../lib/Sift.mjs"
 import { current } from "../lib/edit.mjs"
 import { standard, debugging } from "../plugins/std.mjs"
 import { windows } from "../plugins/windows.mjs"
 
-const send = sift()
+const send = make()
 
 send(standard, debugging, windows(send))
 

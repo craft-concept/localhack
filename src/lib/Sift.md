@@ -3,7 +3,7 @@
 Sift is an experimental data management library with an architecture similar to
 Flux.
 
-Note: Keep in mind that sift is just something we're playing around with, and
+Note: Keep in mind that sift is something we're still playing around with; it
 could be a terrible idea.
 
 The core of Sift is the plugin. A plugin is a function of this shape:
@@ -15,9 +15,9 @@ immer Draft proxy objects. This means that plugins can freely mutate both
 
 Unlike Flux, the `input` objects are not necessarily actions in the traditional
 form (`{ type: "AddTodo", todo: {...}}`). Instead, the `input` object is simply
-some data you'd like added to the system. The plugins inspect each input object
-to determine if their logic applies. Some plugins might simply decorate the
-`input` object with metadata and not touch the `state` at all.
+some data you'd like to show to the system. The plugins inspect each input
+object to determine if their logic applies. Some plugins might simply decorate
+the `input` object with metadata and not touch the `state` at all.
 
 Let's look at the code. We depend on `immer`, our testing lib, and some local
 data-structure helpers.
@@ -28,39 +28,31 @@ import { test } from "./testing.mjs"
 import { iter, current, iterate } from "./edit.mjs"
 ```
 
-First, we expose our standard function for creating a sift instance.
+`make` is the small core of all sift instances. First, we create the `self`
+function. `self` is the sift instance itself and holds the internal data.
+
+You could imagine each sift instance as a little machine that gobbles up
+objects. You can feed objects via `self(obj)` or `self.send(obj)`. `send`
+returns an array of the updated inputs as well as any inputs sent internally by
+plugins: `send(a, b) //=> [updatedA, updatedB, other, values]`.
 
 ```js
-export const sift = (...inputs) => {
-  const send = make(originalPlugin)
-  send(...inputs)
-  return send
-}
-```
-
-Our standard sift instance-creating function uses `make`. `make` creates a sift
-instance and applies the given meta-plugins.
-
-```js
-export const make = (...metaPlugins) => root().meta(metaPlugins)
-```
-
-`root`: The small core of all sift instances. It doesn't do much more than
-provide a `send` function and supports adding meta-plugins.
-
-```js
-export const root = () => {
-  send.send = send
-  send.next = () => {}
-  send.meta = (...fns) => {
-    for (const fn of iter(fns)) send.next = fn(send) || send.next
-    return send
+export function make(...metas) {
+  function self(...inputs) {
+    return self.send(...inputs)
   }
-  return send
 
-  function send(...inputs) {
-    return send.next(inputs)
+  self.self = self
+  self.send = inputs => (self.inputs = inputs)
+
+  self.meta = (...metas) => {
+    for (const meta of iter(metas)) self.send = meta(self) || self.send
+    return self
   }
+
+  self.meta(originalPlugin, ...metas)
+
+  return self
 }
 ```
 
@@ -75,38 +67,36 @@ This plugin implements:
 - The use of immer to produce immutable values between inputs.
 
 ```js
-export const originalPlugin = ({ send }) => inputs => {
-  if (send.sending) {
-    send.queue || (send.queue = [])
-    send.queue.push(...iter(inputs))
-    return inputs
-  }
+export function originalPlugin({ self }) {
+  return (...inputs) => {
+    if (self.sending) {
+      self.queue ??= []
+      self.queue.push(...iter(inputs))
+      return inputs
+    }
 
-  send.sending = true
-  send.state ?? (send.state = {})
+    self.sending = true
+    self.state ??= {}
 
-  const result = produce(inputs, inputs => {
-    send.state = produce(send.state, state => {
-      state.plugins ?? (state.plugins = [])
+    const results = produce(inputs, inputs => {
+      self.state = produce(self.state, state => {
+        state.plugins ?? (state.plugins = [])
 
-      for (const input of iter(inputs)) {
-        if (typeof input === "function") state.plugins.push(input)
+        for (const input of iter(inputs)) {
+          if (typeof input === "function") state.plugins.push(input)
 
-        runWith(state.plugins, input, state, send)
-      }
+          runWith(state.plugins, input, state, self.send)
+        }
+      })
     })
-  })
 
-  send.sending = false
+    self.sending = false
 
-  /**
-   * Sending one at a time helps the stack grow quicker and thus helps
-   * detect broken plugins.
-   */
-  const queued = send.queue?.shift()
-  if (queued) send(queued)
+    const queued = self.queue?.shift()
+    if (queued) self.send(queued)
 
-  return result
+    return results
+  }
 }
 ```
 
@@ -174,9 +164,13 @@ mind.
 
 - Pre-Stage: Meta
 
-  - `send => replace(send)`
+  - `self => replacementSend`
   - Only possible during config time. Used for internals.
-  - Haven't made this one yet, but it would probably be useful.
+
+I think it could be neat to put the meta stage at the end:
+`input => state => send => self => void`. Meta-plugins would be registered
+separately and would be called an extra time with `self`. One neat side-effect
+is that meta-plugins could still operate as standard plugins.
 
 - Stage: Input
 
