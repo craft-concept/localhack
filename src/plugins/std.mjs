@@ -26,12 +26,17 @@ export const config = input => {
 }
 
 /** Plugin that logs the input objects. */
-export const trace = input => {
+export const logInputs = input => {
   console.log("input:", current(input))
 }
+
+export const trace = key =>
+  function trace(input) {
+    if (key in input) console.log(`input.${key}:`, input[key])
+  }
 
 /** The standard set of plugins. */
 export const standard = [memory.default, config, alias]
 
 /** Set of plugins for debugging. */
-export const debugging = [trace]
+export const debugging = []

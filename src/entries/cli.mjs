@@ -2,8 +2,9 @@
 
 import { make } from "../lib/Sift.mjs"
 import { current } from "../lib/edit.mjs"
-import { standard, debugging } from "../plugins/std.mjs"
+import { standard, debugging, trace } from "../plugins/std.mjs"
 import * as build from "../plugins/build.mjs"
+import * as CLI from "../plugins/CLI.mjs"
 import * as project from "../lib/project.mjs"
 import electron from "electron"
 import { execFile, spawn } from "child_process"
@@ -12,7 +13,7 @@ const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = make()
 
-send(standard, build.all, cli)
+send(standard, build.all, CLI.all, cli)
 
 send({
   cwd,
@@ -29,7 +30,7 @@ function cli(input) {
     state.args = current(input.args)
 
     return send => {
-      if (state.args.includes("--debug")) send(debugging)
+      if (state.flags.debug) send(trace(state.flags.debug))
 
       switch (input.cmd) {
         case undefined:
@@ -62,11 +63,11 @@ function usageCmd(input) {
 function buildCmd(input) {
   if (input !== buildCmd) return
 
-  const glob = "src/**/*.{html,ts,js,mjs,md}"
+  const glob = "src/**/*.{html,ts,js,mjs,md,ohm}"
 
   return state => send => {
-    if (state.args.includes("--watch")) send(watchCmd)
-    if (state.args.includes("--dist")) send(distCmd)
+    if (state.flags.watch) send(watchCmd)
+    if (state.flags.dist) send(distCmd)
     send({ glob })
   }
 }
@@ -77,7 +78,8 @@ function distCmd(input) {
   const dist = project.build("entries/*.{html,ts,js,mjs}")
 
   return state => send => {
-    if (state.args.includes("--watch")) send(watchCmd)
+    if (state.flags.watch) send(watchCmd)
+
     send(build.bundling, { dist })
   }
 }

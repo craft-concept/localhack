@@ -139,7 +139,9 @@ Now we define some tests using our custom testing library. These only run when
 
 ```mjs
 test(make, ({ eq }) => {
-  const send = sift(
+  const self = make()
+
+  self(
     input => state => {
       state.count ?? (state.count = 0)
       state.count++
@@ -151,8 +153,8 @@ test(make, ({ eq }) => {
     },
   )
 
-  eq(send({}), [{ testing: true }])
-  eq(send.state.count, 6)
+  eq(self({}), [{ testing: true }])
+  eq(self.state.count, 6)
 })
 ```
 

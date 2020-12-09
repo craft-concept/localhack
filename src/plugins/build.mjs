@@ -71,12 +71,16 @@ export function writing(input) {
   }
 }
 
+export const loaders = {
+  ".ohm": "text",
+}
+
 export function transpiling(input) {
   const { name, path, text } = input
 
   if (!path) return
   if (!text) return
-  if (!/\/src\/.+\.(mjs|js)x?$/.test(path)) return
+  if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path)) return
 
   const outputPath = path.replace("/src/", "/.localhack/build/")
 
@@ -84,6 +88,7 @@ export function transpiling(input) {
     const { code } = await Esbuild.transform(text, {
       sourcefile: name ?? path,
       target: "node12",
+      loader: loaders[extname(path)],
       // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
       format: "esm",
     })
@@ -110,6 +115,7 @@ export function bundling(input) {
       bundle: true,
       target: "node12",
       format: "esm",
+      loader: loaders,
       outExtension: { ".js": ".mjs" },
       external: [
         "chalk",
