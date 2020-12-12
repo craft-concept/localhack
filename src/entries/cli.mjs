@@ -38,7 +38,7 @@ function cli(input) {
         case "build":
           return send(buildCmd)
         case "dist":
-          return send(buildCmd, distCmd)
+          return send(distCmd)
         case "test":
           return send(testCmd)
         case "watch":
