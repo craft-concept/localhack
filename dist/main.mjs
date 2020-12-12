@@ -267,17 +267,18 @@ var runWith = (fns3, ...steps) => {
   }
 };
 test(make, ({eq: eq2}) => {
-  const send2 = sift((input) => (state2) => {
+  const self = make();
+  self((input) => (state2) => {
     var _a;
     (_a = state2.count) != null ? _a : state2.count = 0;
     state2.count++;
   }, (input) => {
-  }, (input) => input.testing = true, (input) => (state2) => (send22) => {
+  }, (input) => input.testing = true, (input) => (state2) => (send2) => {
     if (state2.count === 4)
-      send22({msg: "count is 4!"});
+      send2({msg: "count is 4!"});
   });
-  eq2(send2({}), [{testing: true}]);
-  eq2(send2.state.count, 6);
+  eq2(self({}), [{testing: true}]);
+  eq2(self.state.count, 6);
 });
 
 // .localhack/build/lib/fns.mjs
@@ -364,11 +365,8 @@ var config = (input) => {
     deepAssign(state2.config, input.config);
   };
 };
-var trace = (input) => {
-  console.log("input:", current(input));
-};
 var standard = [stdin_default, config, alias];
-var debugging = [trace];
+var debugging = [];
 
 // .localhack/build/plugins/windows.mjs
 import electron2 from "electron";

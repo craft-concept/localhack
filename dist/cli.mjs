@@ -271,17 +271,18 @@ var runWith = (fns3, ...steps) => {
   }
 };
 test(make, ({eq: eq2}) => {
-  const send2 = sift((input) => (state2) => {
+  const self = make();
+  self((input) => (state2) => {
     var _a;
     (_a = state2.count) != null ? _a : state2.count = 0;
     state2.count++;
   }, (input) => {
-  }, (input) => input.testing = true, (input) => (state2) => (send22) => {
+  }, (input) => input.testing = true, (input) => (state2) => (send2) => {
     if (state2.count === 4)
-      send22({msg: "count is 4!"});
+      send2({msg: "count is 4!"});
   });
-  eq2(send2({}), [{testing: true}]);
-  eq2(send2.state.count, 6);
+  eq2(self({}), [{testing: true}]);
+  eq2(self.state.count, 6);
 });
 
 // .localhack/build/lib/fns.mjs
@@ -368,11 +369,11 @@ var config = (input) => {
     deepAssign(state2.config, input.config);
   };
 };
-var trace = (input) => {
-  console.log("input:", current(input));
+var trace = (key) => function trace2(input) {
+  if (key in input)
+    console.log(`input.${key}:`, input[key]);
 };
 var standard = [stdin_default, config, alias];
-var debugging = [trace];
 
 // .localhack/build/plugins/build.mjs
 import fg from "fast-glob";
@@ -485,24 +486,29 @@ function writing(input) {
     send2({path: path22, persisted: true});
   };
 }
+var loaders = {
+  ".ohm": "text"
+};
 function transpiling(input) {
   const {name, path: path22, text} = input;
   if (!path22)
     return;
   if (!text)
     return;
-  if (!/\/src\/.+\.(mjs|js)x?$/.test(path22))
+  if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path22))
     return;
   const outputPath = path22.replace("/src/", "/.localhack/build/");
   return (state2) => async (send2) => {
     const {code} = await Esbuild.transform(text, {
       sourcefile: name != null ? name : path22,
       target: "node12",
+      loader: loaders[extname(path22)],
       format: "esm"
     });
     send2({
       path: outputPath,
       text: code,
+      source: path22,
       persisted: false
     });
   };
@@ -519,6 +525,7 @@ function bundling(input) {
       bundle: true,
       target: "node12",
       format: "esm",
+      loader: loaders,
       outExtension: {".js": ".mjs"},
       external: [
         "chalk",
@@ -569,13 +576,33 @@ var all3 = [
   all2
 ];
 
+// .localhack/build/plugins/CLI.mjs
+function parseFlags(input) {
+  var _a, _b, _c;
+  for (const arg of iter(input.args)) {
+    const [m, name, value] = arg.match(/^--(\w[-_\w]*)(?:=(\w+))?$/) || [];
+    if (!name)
+      continue;
+    (_a = input.flags) != null ? _a : input.flags = {};
+    (_c = (_b = input.flags)[name]) != null ? _c : _b[name] = [];
+    if (value)
+      input.flags[name].push(value);
+  }
+  return (state2) => {
+    var _a2;
+    (_a2 = state2.flags) != null ? _a2 : state2.flags = {};
+    Object.assign(state2.flags, input.flags);
+  };
+}
+var all4 = [parseFlags];
+
 // .localhack/build/entries/cli.mjs
 import electron2 from "electron";
 import {execFile, spawn} from "child_process";
 var cwd = process.cwd();
 var [node, bin, cmd, ...args] = process.argv;
 var send = make();
-send(standard, all3, cli);
+send(standard, all3, all4, cli);
 send({
   cwd,
   cmd,
@@ -589,15 +616,15 @@ function cli(input) {
     state2.cmd = input.cmd;
     state2.args = current(input.args);
     return (send2) => {
-      if (state2.args.includes("--debug"))
-        send2(debugging);
+      if (state2.flags.debug)
+        send2(trace(state2.flags.debug));
       switch (input.cmd) {
         case void 0:
           return send2(usageCmd);
         case "build":
           return send2(buildCmd);
         case "dist":
-          return send2(buildCmd, distCmd);
+          return send2(distCmd);
         case "test":
           return send2(testCmd);
         case "watch":
@@ -620,11 +647,11 @@ function usageCmd(input) {
 function buildCmd(input) {
   if (input !== buildCmd)
     return;
-  const glob = "src/**/*.{html,ts,js,mjs,md}";
+  const glob = "src/**/*.{html,ts,js,mjs,md,ohm}";
   return (state2) => (send2) => {
-    if (state2.args.includes("--watch"))
+    if (state2.flags.watch)
       send2(watchCmd);
-    if (state2.args.includes("--dist"))
+    if (state2.flags.dist)
       send2(distCmd);
     send2({glob});
   };
@@ -634,7 +661,7 @@ function distCmd(input) {
     return;
   const dist2 = build("entries/*.{html,ts,js,mjs}");
   return (state2) => (send2) => {
-    if (state2.args.includes("--watch"))
+    if (state2.flags.watch)
       send2(watchCmd);
     send2(bundling, {dist: dist2});
   };
