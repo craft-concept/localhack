@@ -96,6 +96,7 @@ export function transpiling(input) {
     send({
       path: outputPath,
       text: code,
+      source: path,
       persisted: false,
     })
   }
