@@ -21,8 +21,9 @@
     "test": "NODE_ENV=test node --experimental-loader=./.localhack/build/entries/NodeLoader.mjs .localhack/build/entries/cli.mjs test",
     "cli": "node .localhack/build/entries/cli.mjs",
     "build": "yarn cli build",
+    "dist": "yarn cli dist",
     "watch": "yarn cli watch",
-    "dist": "yarn cli dist"
+    "ui": "yarn cli ui"
   },
   "repository": "https://github.com/conceptlove/localhack",
   "keywords": [
