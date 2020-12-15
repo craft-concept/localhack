@@ -114,33 +114,12 @@ var T = {
   }
 };
 
-// .localhack/build/lib/edit.mjs
-var isNil = (x) => x == null;
-var exists = (x) => x != null;
-var reify2 = (desc) => (state2) => {
-  for (const [k, as] of entries(desc)) {
-    state2[k] = as(state2[k]);
-  }
-  return state2;
-};
-test(reify2, ({eq: eq2}) => {
-  const state2 = {
-    number: 12,
-    string: "something"
-  };
-  eq2(reify2({
-    number: T.Array,
-    string: T.Set
-  })(state2), {
-    number: [12],
-    string: new Set(["something"])
-  });
-});
+// .localhack/build/lib/Enum.mjs
 function* iter(x) {
   if (x == null)
     return;
   if (x instanceof Map)
-    x = x.keys();
+    x = x.values();
   if (typeof x === "object" && Symbol.iterator in x) {
     for (const xa of x)
       yield* iter(xa);
@@ -148,6 +127,20 @@ function* iter(x) {
     yield x;
   }
 }
+test(iter, ({eq: eq2}) => {
+  eq2([...iter()], []);
+  eq2([...iter(null)], []);
+  eq2([...iter(void 0)], []);
+  eq2([...iter(1)], [1]);
+  eq2([...iter([1])], [1]);
+  eq2([...iter([1, [2, 3], 4])], [1, 2, 3, 4]);
+  eq2([
+    ...iter(new Map([
+      ["1", 1],
+      ["2", 2]
+    ]))
+  ], [1, 2]);
+});
 function* keys(obj) {
   if (isObj(obj))
     for (const k in obj)
@@ -158,14 +151,6 @@ function* entries(obj) {
     for (const k in obj)
       yield [k, obj[k]];
 }
-test(iter, ({eq: eq2}) => {
-  eq2([...iter()], []);
-  eq2([...iter(null)], []);
-  eq2([...iter(void 0)], []);
-  eq2([...iter(1)], [1]);
-  eq2([...iter([1])], [1]);
-  eq2([...iter([1, [2, 3], 4])], [1, 2, 3, 4]);
-});
 var iterMap = (fn) => function* iterMap2(...xs) {
   for (const v of iter(xs))
     yield* iter(fn(v));
@@ -182,6 +167,99 @@ test(iterMap, ({eq: eq2}) => {
   eq2([...incs(1, 2, [3, [4]], 5)], [2, 3, 4, 5, 6]);
   eq2([...incs(null, void 0, 1)], [2]);
   eq2([...evens(1, 2, [3, [4]], 5)], [2, 4]);
+});
+var Enum = class {
+  static of(...values2) {
+    return new Enum(() => iter(values2));
+  }
+  static gen(generator) {
+    return new Enum(generator);
+  }
+  constructor(fn) {
+    this.iter = fn;
+  }
+  [Symbol.iterator]() {
+    return this.iter()[Symbol.iterator]();
+  }
+  chain(fn) {
+    const values2 = this.iter();
+    return Enum.gen(function* chained() {
+      for (const value of values2) {
+        yield* iter(fn(value));
+      }
+    });
+  }
+  map(fn) {
+    const values2 = this.iter();
+    return Enum.gen(function* mapped() {
+      for (const value of values2) {
+        yield fn(value);
+      }
+    });
+  }
+  each(fn) {
+    for (const value of this.iter())
+      fn(value);
+    return this;
+  }
+  forEach(fn) {
+    return this.each(fn);
+  }
+  array() {
+    return [...this.iter()];
+  }
+  set() {
+    return new Set(this.iter());
+  }
+};
+test(Enum, ({eq: eq2}) => {
+  const inc = (x) => x + 1;
+  const dup = (x) => [x, x];
+  const en = Enum.of(1, 2, 3);
+  const en2 = Enum.of(en);
+  eq2([...en], [1, 2, 3]);
+  eq2([...en2], [1, 2, 3]);
+  eq2(en.array(), [1, 2, 3]);
+  eq2(en2.array(), [1, 2, 3]);
+  eq2(en.map(inc).array(), [2, 3, 4]);
+  eq2(en2.map(inc).array(), [2, 3, 4]);
+  eq2(en.map(dup).array(), [
+    [1, 1],
+    [2, 2],
+    [3, 3]
+  ]);
+  eq2(en2.map(dup).array(), [
+    [1, 1],
+    [2, 2],
+    [3, 3]
+  ]);
+  eq2(en.chain(dup).array(), [1, 1, 2, 2, 3, 3]);
+  eq2(en2.chain(dup).array(), [1, 1, 2, 2, 3, 3]);
+  eq2(en.set(), new Set([1, 2, 3]));
+  eq2(en2.set(), new Set([1, 2, 3]));
+});
+
+// .localhack/build/lib/edit.mjs
+var isNil = (x) => x == null;
+var exists = (x) => x != null;
+var reify22 = (desc) => (state2) => {
+  for (const [k, as] of entries(desc)) {
+    state2[k] = as(state2[k]);
+  }
+  return state2;
+};
+test(reify22, ({eq: eq2}) => {
+  const state2 = {
+    number: 12,
+    string: "something"
+  };
+  eq2(reify22({
+    number: T.Array,
+    string: T.Set
+  })(state2), {
+    number: [12],
+    string: new Set(["something"])
+  });
 });
 var DRAFT_STATE = Symbol.for("immer-state");
 var draftState = (input) => input[DRAFT_STATE];
@@ -259,12 +337,12 @@ function originalPlugin({self}) {
 }
 var isFunction = (x) => typeof x === "function";
 var apply = (fn, x) => [...iter(fn(x))].filter(isFunction);
-var run = (fns3, x) => {
+function run(fns3, x) {
   const out = [];
   for (const fn of iter(fns3))
     out.push(...apply(fn, x));
   return out;
-};
+}
 var runWith = (fns3, ...steps) => {
   for (const step of steps) {
     fns3 = run(fns3, step);
@@ -669,6 +747,9 @@ function distCmd(input) {
 function testCmd(input) {
   if (input !== testCmd)
     return;
+  for (const arg of iter(args)) {
+    import(build(arg));
+  }
 }
 function uiCmd(input) {
   if (input !== uiCmd)
