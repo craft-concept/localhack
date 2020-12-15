@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { make } from "../lib/Sift.mjs"
-import { current } from "../lib/edit.mjs"
+import { current, iter } from "../lib/edit.mjs"
 import { standard, debugging, trace } from "../plugins/std.mjs"
 import * as build from "../plugins/build.mjs"
 import * as CLI from "../plugins/CLI.mjs"
@@ -86,6 +86,10 @@ function distCmd(input) {
 
 function testCmd(input) {
   if (input !== testCmd) return
+
+  for (const arg of iter(args)) {
+    import(project.build(arg))
+  }
 }
 
 function uiCmd(input) {

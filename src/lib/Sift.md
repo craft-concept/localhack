@@ -114,7 +114,7 @@ Each plugin runs in a series of stages: `input => state => send => {}`.
 functions can then be passed to run along with the next stage's input.
 
 ```mjs
-export const run = (fns, x) => {
+export function run(fns, x) {
   const out = []
   for (const fn of iter(fns)) out.push(...apply(fn, x))
   return out
