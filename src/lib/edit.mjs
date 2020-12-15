@@ -6,9 +6,11 @@ import {
   original as originalIm,
 } from "immer"
 import { T, isObj } from "./reify.mjs"
+import { Enum, iter, entries, keys, values } from "./Enum.mjs"
 
 /** Default type conversions. */
 export { T, isObj }
+export { Enum, iter, entries, keys, values }
 
 /**
  * Returns whether `x` is null or undefined.
@@ -32,6 +34,7 @@ export const reify = desc => state => {
 
   return state
 }
+
 test(reify, ({ eq }) => {
   const state = {
     number: 12,
@@ -48,65 +51,6 @@ test(reify, ({ eq }) => {
       string: new Set(["something"]),
     },
   )
-})
-
-/**
- * Iterate over a collection of objects. Only Arrays and Sets are themselves also iterated.
- */
-export function* iter(x) {
-  if (x == null) return
-  if (x instanceof Map) x = x.keys()
-  if (typeof x === "object" && Symbol.iterator in x) {
-    for (const xa of x) yield* iter(xa)
-  } else {
-    yield x
-  }
-}
-
-export function* fns(...x) {
-  for (const v of iter(x)) if (typeof x === "function") yield x
-}
-
-/** Iterate over the keys of an object. */
-export function* keys(obj) {
-  if (isObj(obj)) for (const k in obj) yield k
-}
-
-/** Iterate over the entries of an object. */
-export function* entries(obj) {
-  if (isObj(obj)) for (const k in obj) yield [k, obj[k]]
-}
-
-test(iter, ({ eq }) => {
-  eq([...iter()], [])
-  eq([...iter(null)], [])
-  eq([...iter(undefined)], [])
-  eq([...iter(1)], [1])
-  eq([...iter([1])], [1])
-  eq([...iter([1, [2, 3], 4])], [1, 2, 3, 4])
-})
-
-/**
- * `iter` over the inputs, passing each through `fn`.
- */
-export const iterMap = fn =>
-  function* iterMap(...xs) {
-    for (const v of iter(xs)) yield* iter(fn(v))
-  }
-
-test(iterMap, ({ eq }) => {
-  const inc = x => x + 1
-  const evenOnly = x => (x % 2 === 0 ? x : null)
-  const incs = iterMap(inc)
-  const evens = iterMap(evenOnly)
-
-  eq([...incs()], [])
-  eq([...incs([])], [])
-  eq([...incs(null)], [])
-  eq([...incs(undefined)], [])
-  eq([...incs(1, 2, [3, [4]], 5)], [2, 3, 4, 5, 6])
-  eq([...incs(null, undefined, 1)], [2])
-  eq([...evens(1, 2, [3, [4]], 5)], [2, 4])
 })
 
 /**
