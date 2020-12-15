@@ -145,7 +145,7 @@ export class Enum {
 And some tests for `Enum`:
 
 ```mjs
-import { test } from "../lib/testing.mjs"
+import { test } from "./Testing.mjs"
 
 test(Enum, ({ eq }) => {
   const inc = x => x + 1

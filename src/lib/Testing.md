@@ -1,8 +1,9 @@
-/**
- * I just want a testing framework that lets me write tests in the same file
- * as the source code.
- */
+# Testing Page
 
+A set of functions for defining tests next to the code they are testing. See the
+`test` function.
+
+```mjs
 import { strict, AssertionError } from "assert"
 import chalk from "chalk"
 
@@ -24,14 +25,19 @@ export const throws = (err, fn) => {
 
   strict.fail(`Expected to throw ${err.name}`)
 }
+```
 
+```mjs
 if (process.env.NODE_ENV === "test") log("\nRunning tests...\n\n")
 
 let previousFilename = ""
-/**
- * Write tests next to the source.
- */
-export const test = (subject, fn) => {
+```
+
+The function you're most likely here for. Example usage:
+`test(someFunction, ({ eq }) => { eq(someFunction(), expectedOutput) })`
+
+```mjs
+export function test(subject, fn) {
   if (process.env.NODE_ENV !== "test") return
   const filename = callingFilename()
 
@@ -60,7 +66,11 @@ export const test = (subject, fn) => {
     }
   }
 }
+```
 
+And we define some helpers for handling stack traces.
+
+```mjs
 export const backtrace = err =>
   err.stack
     .split("\n")
@@ -95,3 +105,4 @@ export function callingFilename() {
     if (name !== current) return name
   }
 }
+```

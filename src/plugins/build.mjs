@@ -82,7 +82,9 @@ export function transpiling(input) {
   if (!text) return
   if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path)) return
 
-  const outputPath = path.replace("/src/", "/.localhack/build/")
+  const outputPath = path
+    .replace("/src/", "/.localhack/build/")
+    .replace(/\/Readme\.(\w+)$/, ".$1")
 
   return state => async send => {
     const { code } = await Esbuild.transform(text, {

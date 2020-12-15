@@ -24,7 +24,7 @@ data-structure helpers.
 
 ```mjs
 import { produce } from "immer"
-import { test } from "./testing.mjs"
+import { test } from "./Testing.mjs"
 import { iter, current, iterate } from "./edit.mjs"
 ```
 

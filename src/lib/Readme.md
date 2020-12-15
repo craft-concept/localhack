@@ -1,12 +1,11 @@
-# The Libraries
+# The Library
 
-"lib" is the Library of Libraries.
-
-We're planning to allow importing libraries using the lib namespace:
-`import { Enum } from 'lib/Enum'`.
-
-Soon, Readme's will behave like `index.js` files: `import { Enum } from 'lib'`.
+"lib" is the Library. Import common exports of the nested modules from
+`lib.mjs`.
 
 ```mjs
-export * from "./Enum"
+export { isNil, exists, reify, deepAssign } from "./edit.mjs"
+export { Enum, iter, entries, keys, values } from "./Enum.mjs"
+export { T, isObj } from "./reify.mjs"
+export { test } from "./Testing.mjs"
 ```
