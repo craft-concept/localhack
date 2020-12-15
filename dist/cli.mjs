@@ -3,7 +3,7 @@
 // .localhack/build/lib/Sift.mjs
 import {produce as produce2} from "immer";
 
-// .localhack/build/lib/testing.mjs
+// .localhack/build/lib/Testing.mjs
 import {strict, AssertionError} from "assert";
 import chalk2 from "chalk";
 var dot = chalk2.green("\u2713");
@@ -25,7 +25,7 @@ var throws = (err, fn) => {
 if (process.env.NODE_ENV === "test")
   log("\nRunning tests...\n\n");
 var previousFilename = "";
-var test = (subject, fn) => {
+function test(subject, fn) {
   if (process.env.NODE_ENV !== "test")
     return;
   const filename = callingFilename();
@@ -51,7 +51,7 @@ var test = (subject, fn) => {
       console.error("\n\n");
     }
   }
-};
+}
 var backtrace = (err) => err.stack.split("\n").filter((line) => /^\s*at ./.test(line)).join("\n");
 function* stackDetails(err) {
   const matches = err.stack.matchAll(/ +at.*[( ](?:\w+:\/\/)?(.+):(\d+):(\d+)/g);
@@ -575,7 +575,7 @@ function transpiling(input) {
     return;
   if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path22))
     return;
-  const outputPath = path22.replace("/src/", "/.localhack/build/");
+  const outputPath = path22.replace("/src/", "/.localhack/build/").replace(/\/Readme\.(\w+)$/, ".$1");
   return (state2) => async (send2) => {
     const {code} = await Esbuild.transform(text, {
       sourcefile: name != null ? name : path22,
