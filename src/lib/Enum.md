@@ -36,6 +36,20 @@ test(iter, ({ eq }) => {
 ```
 
 ```mjs
+export function isEmpty(x) {
+  for (const _ of iter(x)) return false
+  return true
+}
+
+test(isEmpty, ({ eq }) => {
+  eq(isEmpty(null), true)
+  eq(isEmpty([]), true)
+  eq(isEmpty([1]), false)
+  eq(isEmpty(1), false)
+})
+```
+
+```mjs
 export function* fns(...x) {
   for (const v of iter(x)) if (typeof x === "function") yield x
 }
