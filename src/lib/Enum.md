@@ -36,6 +36,21 @@ test(iter, ({ eq }) => {
 ```
 
 ```mjs
+export function* withNext(iterable) {
+  let it = iter(iterable),
+    val,
+    res,
+    next = v => (val = v)
+  do {
+    res = it.next(val)
+    yield [res, next]
+  } while (res.done === false)
+}
+
+test(withNext, ({ eq }) => {})
+```
+
+```mjs
 export function isEmpty(x) {
   for (const _ of iter(x)) return false
   return true
@@ -146,12 +161,12 @@ export class Enum {
     return this.each(fn)
   }
 
-  array() {
-    return [...this.iter()]
+  get array() {
+    return (this._array ??= [...this.iter()])
   }
 
-  set() {
-    return new Set(this.iter())
+  get set() {
+    return (this._set ??= new Set(this.iter()))
   }
 }
 ```
@@ -171,27 +186,27 @@ test(Enum, ({ eq }) => {
   eq([...en], [1, 2, 3])
   eq([...en2], [1, 2, 3])
 
-  eq(en.array(), [1, 2, 3])
-  eq(en2.array(), [1, 2, 3])
+  eq(en.array, [1, 2, 3])
+  eq(en2.array, [1, 2, 3])
 
-  eq(en.map(inc).array(), [2, 3, 4])
-  eq(en2.map(inc).array(), [2, 3, 4])
+  eq(en.map(inc).array, [2, 3, 4])
+  eq(en2.map(inc).array, [2, 3, 4])
 
-  eq(en.map(dup).array(), [
+  eq(en.map(dup).array, [
     [1, 1],
     [2, 2],
     [3, 3],
   ])
-  eq(en2.map(dup).array(), [
+  eq(en2.map(dup).array, [
     [1, 1],
     [2, 2],
     [3, 3],
   ])
 
-  eq(en.chain(dup).array(), [1, 1, 2, 2, 3, 3])
-  eq(en2.chain(dup).array(), [1, 1, 2, 2, 3, 3])
+  eq(en.chain(dup).array, [1, 1, 2, 2, 3, 3])
+  eq(en2.chain(dup).array, [1, 1, 2, 2, 3, 3])
 
-  eq(en.set(), new Set([1, 2, 3]))
-  eq(en2.set(), new Set([1, 2, 3]))
+  eq(en.set, new Set([1, 2, 3]))
+  eq(en2.set, new Set([1, 2, 3]))
 })
 ```

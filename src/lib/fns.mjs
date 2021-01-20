@@ -1,3 +1,6 @@
+/**
+ * Make a new function from the given `fn` with changed name and properties.
+ */
 export function makeFn(fn, { name, ...props }) {
   const fn2 = copyFn(fn, name)
   return Object.assign(fn2, props)
