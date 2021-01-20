@@ -23,14 +23,12 @@ function* facetsFor(name) {
 
 import { test } from "lib.mjs"
 test(facetsFor, ({ eq }) => {
-  eq([...facetsFor("lib/Resolution")], ["lib/Resolution.mjs", "lib/Res])
+  eq([...facetsFor("lib/Resolution")], ["lib/Resolution.mjs", "lib/Res"])
 })
 ```
 
 ```mjs
-export const defaultRoots = [
-  process.cwd(),
-]
+export const defaultRoots = [process.cwd()]
 
 function* pathsFor(name, from, ...roots) {
   if (isRelative(name)) {
@@ -44,7 +42,7 @@ function* pathsFor(name, from, ...roots) {
 }
 
 test(pathsFor, ({ eq }) => {
-  eq([...pathsFor("lib/Resolution")], ["lib/Resolution])
+  eq([...pathsFor("lib/Resolution")], ["lib/Resolution"])
 })
 ```
 
