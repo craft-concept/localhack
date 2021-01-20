@@ -10,13 +10,24 @@ var eq = (actual, expected, message) => {
   strict.deepEqual(actual, expected, message);
   log(dot);
 };
+var truthy = (actual, message) => {
+  strict.ok(actual, message);
+  log(dot);
+};
+var falsy = (actual, message) => {
+  if (actual == null || actual === false) {
+    log(dot);
+  } else {
+    strict.fail(message || "Expected falsy value");
+  }
+};
 var throws = (err, fn) => {
   try {
     fn();
   } catch (e) {
-    if (!(e instanceof err))
-      throw e;
-    log(dot);
+    if (e instanceof err)
+      return log(dot);
+    throw e;
   }
   strict.fail(`Expected to throw ${err.name}`);
 };
@@ -33,7 +44,7 @@ function test(subject, fn) {
   }
   log(`  ${chalk2.yellow(subject.name || subject)}: `);
   try {
-    fn({eq, throws});
+    fn({eq, throws, truthy, falsy});
     log("\n");
   } catch (err) {
     log(chalk2.red("\u2717"));
@@ -139,6 +150,26 @@ test(iter, ({eq: eq2}) => {
     ]))
   ], [1, 2]);
 });
+function* withNext(iterable) {
+  let it = iter(iterable), val, res, next = (v) => val = v;
+  do {
+    res = it.next(val);
+    yield [res, next];
+  } while (res.done === false);
+}
+test(withNext, ({eq: eq2}) => {
+});
+function isEmpty(x) {
+  for (const _ of iter(x))
+    return false;
+  return true;
+}
+test(isEmpty, ({eq: eq2}) => {
+  eq2(isEmpty(null), true);
+  eq2(isEmpty([]), true);
+  eq2(isEmpty([1]), false);
+  eq2(isEmpty(1), false);
+});
 function* keys(obj) {
   if (isObj(obj))
     for (const k in obj)
@@ -179,35 +210,53 @@ var Enum = class {
   [Symbol.iterator]() {
     return this.iter()[Symbol.iterator]();
   }
+  gen(fn) {
+    return Enum.gen(() => fn(this.iter()));
+  }
   chain(fn) {
-    const values2 = this.iter();
-    return Enum.gen(function* chained() {
-      for (const value of values2) {
-        yield* iter(fn(value));
-      }
+    return this.gen(function* chained(xs) {
+      for (const x of xs)
+        yield* iter(fn(x));
     });
   }
   map(fn) {
-    const values2 = this.iter();
-    return Enum.gen(function* mapped() {
-      for (const value of values2) {
-        yield fn(value);
-      }
+    return this.gen(function* mapped(xs) {
+      for (const x of xs)
+        yield fn(x);
+    });
+  }
+  filter(fn) {
+    return this.select(fn);
+  }
+  select(fn) {
+    return this.gen(function* filtered(xs) {
+      for (const x of xs)
+        if (fn(x))
+          yield x;
+    });
+  }
+  reject(fn) {
+    return this.gen(function* filtered(xs) {
+      for (const x of xs)
+        if (!fn(x))
+          yield x;
     });
   }
   each(fn) {
-    for (const value of this.iter())
-      fn(value);
+    for (const x of this.iter())
+      fn(x);
     return this;
   }
   forEach(fn) {
     return this.each(fn);
   }
-  array() {
-    return [...this.iter()];
+  get array() {
+    var _a;
+    return (_a = this._array) != null ? _a : this._array = [...this.iter()];
   }
-  set() {
-    return new Set(this.iter());
+  get set() {
+    var _a;
+    return (_a = this._set) != null ? _a : this._set = new Set(this.iter());
   }
 };
 test(Enum, ({eq: eq2}) => {
@@ -217,24 +266,31 @@ test(Enum, ({eq: eq2}) => {
   const en2 = Enum.of(en);
   eq2([...en], [1, 2, 3]);
   eq2([...en2], [1, 2, 3]);
-  eq2(en.array(), [1, 2, 3]);
-  eq2(en2.array(), [1, 2, 3]);
-  eq2(en.map(inc).array(), [2, 3, 4]);
-  eq2(en2.map(inc).array(), [2, 3, 4]);
-  eq2(en.map(dup).array(), [
+  eq2(en.array, [1, 2, 3]);
+  eq2(en2.array, [1, 2, 3]);
+  eq2(en.map(inc).array, [2, 3, 4]);
+  eq2(en2.map(inc).array, [2, 3, 4]);
+  eq2(en.map(dup).array, [
     [1, 1],
     [2, 2],
     [3, 3]
   ]);
-  eq2(en2.map(dup).array(), [
+  eq2(en2.map(dup).array, [
     [1, 1],
     [2, 2],
     [3, 3]
   ]);
-  eq2(en.chain(dup).array(), [1, 1, 2, 2, 3, 3]);
-  eq2(en2.chain(dup).array(), [1, 1, 2, 2, 3, 3]);
-  eq2(en.set(), new Set([1, 2, 3]));
-  eq2(en2.set(), new Set([1, 2, 3]));
+  eq2(en.chain(dup).array, [1, 1, 2, 2, 3, 3]);
+  eq2(en2.chain(dup).array, [1, 1, 2, 2, 3, 3]);
+  eq2(en.set, new Set([1, 2, 3]));
+  eq2(en2.set, new Set([1, 2, 3]));
+  test(en.select, () => {
+    const isOdd = (x) => x % 2;
+    eq2(en.select(isOdd).array, [1, 3]);
+    eq2(en2.select(isOdd).array, [1, 3]);
+    eq2(en.filter(isOdd).array, [1, 3]);
+    eq2(en.map(inc).reject(isOdd).array, [2, 4]);
+  });
 });
 
 // .localhack/build/lib/edit.mjs
@@ -332,17 +388,17 @@ function originalPlugin({self}) {
   };
 }
 var isFunction = (x) => typeof x === "function";
-var apply = (fn, x) => [...iter(fn(x))].filter(isFunction);
-function run(fns3, x) {
+var apply = (fn, ...xs) => [...iter(fn(...xs))].filter(isFunction);
+function run(fns3, ...xs) {
   const out = [];
   for (const fn of iter(fns3))
-    out.push(...apply(fn, x));
+    out.push(...apply(fn, ...xs));
   return out;
 }
 var runWith = (fns3, ...steps) => {
-  for (const step of steps) {
-    fns3 = run(fns3, step);
-  }
+  if (steps.length === 0)
+    return;
+  runWith(run(fns3, ...steps), ...steps.slice(1));
 };
 test(make, ({eq: eq2}) => {
   const self = make();
