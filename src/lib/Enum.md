@@ -134,26 +134,40 @@ export class Enum {
     return this.iter()[Symbol.iterator]()
   }
 
+  gen(fn) {
+    return Enum.gen(() => fn(this.iter()))
+  }
+
   chain(fn) {
-    const values = this.iter()
-    return Enum.gen(function* chained() {
-      for (const value of values) {
-        yield* iter(fn(value))
-      }
+    return this.gen(function* chained(xs) {
+      for (const x of xs) yield* iter(fn(x))
     })
   }
 
   map(fn) {
-    const values = this.iter()
-    return Enum.gen(function* mapped() {
-      for (const value of values) {
-        yield fn(value)
-      }
+    return this.gen(function* mapped(xs) {
+      for (const x of xs) yield fn(x)
+    })
+  }
+
+  filter(fn) {
+    return this.select(fn)
+  }
+
+  select(fn) {
+    return this.gen(function* filtered(xs) {
+      for (const x of xs) if (fn(x)) yield x
+    })
+  }
+
+  reject(fn) {
+    return this.gen(function* filtered(xs) {
+      for (const x of xs) if (!fn(x)) yield x
     })
   }
 
   each(fn) {
-    for (const value of this.iter()) fn(value)
+    for (const x of this.iter()) fn(x)
     return this
   }
 
@@ -208,5 +222,15 @@ test(Enum, ({ eq }) => {
 
   eq(en.set, new Set([1, 2, 3]))
   eq(en2.set, new Set([1, 2, 3]))
+
+  test(en.select, () => {
+    const isOdd = x => x % 2
+
+    eq(en.select(isOdd).array, [1, 3])
+    eq(en2.select(isOdd).array, [1, 3])
+    eq(en.filter(isOdd).array, [1, 3])
+
+    eq(en.map(inc).reject(isOdd).array, [2, 4])
+  })
 })
 ```
