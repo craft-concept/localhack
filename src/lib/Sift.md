@@ -105,7 +105,7 @@ Next, we define a couple helper functions:
 ```mjs
 export const isFunction = x => typeof x === "function"
 
-export const apply = (fn, x) => [...iter(fn(x))].filter(isFunction)
+export const apply = (fn, ...xs) => [...iter(fn(...xs))].filter(isFunction)
 ```
 
 Each plugin runs in a series of stages: `input => state => send => {}`.
@@ -114,9 +114,9 @@ Each plugin runs in a series of stages: `input => state => send => {}`.
 functions can then be passed to run along with the next stage's input.
 
 ```mjs
-export function run(fns, x) {
+export function run(fns, ...xs) {
   const out = []
-  for (const fn of iter(fns)) out.push(...apply(fn, x))
+  for (const fn of iter(fns)) out.push(...apply(fn, ...xs))
   return out
 }
 ```
@@ -128,9 +128,9 @@ export function run(fns, x) {
 
 ```mjs
 export const runWith = (fns, ...steps) => {
-  for (const step of steps) {
-    fns = run(fns, step)
-  }
+  if (steps.length === 0) return
+
+  runWith(run(fns, ...steps), ...steps.slice(1))
 }
 ```
 
