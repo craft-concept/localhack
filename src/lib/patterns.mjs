@@ -214,12 +214,12 @@ export function guard(fn, inputs) {
 
   function guardedThrowCall(...inputs) {
     const ctx = matchInputs(fn, inputs)
-    if (!ctx) throw new Error(`Invalid inputs: ${inputs}.`)
+    if (!ctx) throw new TypeError(`Invalid inputs: ${inputs}.`)
     return fn(...inputs)
   }
 }
 
-test(guard, ({ eq }) => {
+test(guard, ({ eq, throws }) => {
   guard(add, [Number, Number])
   function add(a, b) {
     return a + b
@@ -230,4 +230,5 @@ test(guard, ({ eq }) => {
   eq(add.with(1, 2, 9), 3)
   eq(add.with("hi", 2), null)
   eq(add.with(1, "hi"), null)
+  throws(TypeError, () => add.ensure("", 1))
 })

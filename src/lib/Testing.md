@@ -32,8 +32,8 @@ export const throws = (err, fn) => {
   try {
     fn()
   } catch (e) {
-    if (!(e instanceof err)) throw e
-    log(dot)
+    if (e instanceof err) return log(dot)
+    throw e
   }
 
   strict.fail(`Expected to throw ${err.name}`)
