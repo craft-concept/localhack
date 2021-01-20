@@ -15,6 +15,19 @@ export const eq = (actual, expected, message) => {
   log(dot)
 }
 
+export const truthy = (actual, message) => {
+  strict.ok(actual, message)
+  log(dot)
+}
+
+export const falsy = (actual, message) => {
+  if (actual == null || actual === false) {
+    log(dot)
+  } else {
+    strict.fail(message || "Expected falsy value")
+  }
+}
+
 export const throws = (err, fn) => {
   try {
     fn()
@@ -48,7 +61,7 @@ export function test(subject, fn) {
 
   log(`  ${chalk.yellow(subject.name || subject)}: `)
   try {
-    fn({ eq, throws })
+    fn({ eq, throws, truthy, falsy })
     log("\n")
   } catch (err) {
     log(chalk.red("✗"))

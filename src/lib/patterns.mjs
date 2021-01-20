@@ -1,4 +1,5 @@
 import { makeFn } from "./fns.mjs"
+import { test } from "./Testing.mjs"
 
 export const T = {
   Any: { __type: "any" },
@@ -51,6 +52,8 @@ export function reify(pattern) {
       return T.String
     case Boolean:
       return T.Boolean
+    case Function:
+      return T.Function(T.Any)
     default:
       return pattern
   }
@@ -66,31 +69,15 @@ export function fn(input, f, output = undefined) {
   })
 }
 
-guard(guard, T.Function(), T.Rest(T.Pattern))
-export function guard(fn, ...inputs) {
-  fn.inputs = inputs
-  fn.with = makeFn(guardedCall, {
-    name: `guarded_${fn.name || "anonymous"}`,
-  })
-
-  return fn
-
-  function guardedCall(...inputs) {
-    const ctx = matchInputs(fn, inputs)
-    return ctx ? fn(...inputs, ctx) : null
-  }
-}
-
 export function matchInputs(fn, inputs) {
-  return fn.matches ? match(fn.inputs)(inputs) : true
+  if (!fn.inputs) return
+  return match(fn.inputs)(inputs)
 }
 
-export const match = pattern => {
+// Todo: return a generator of matched vars
+export function match(pattern) {
   pattern = reify(pattern)
   if (isType(pattern)) return matchType(pattern)
-
-  // TODO: tuples
-  if (Array.isArray(pattern)) throw new Error("Can't match arrays yet.")
 
   // Handle literals
   switch (typeof pattern) {
@@ -100,8 +87,10 @@ export const match = pattern => {
       return data => data === pattern
 
     case "object":
-      return matchObject(pattern)
+      return Array.isArray(pattern) ? matchArray(pattern) : matchObject(pattern)
   }
+
+  throw new Error(`Unimplemented pattern: ${pattern}.`)
 }
 
 export const transform = fn => {
@@ -118,11 +107,23 @@ export function isType(pattern) {
 }
 
 export const matchObject = pattern => data => {
-  if (typeof data !== "object") return false
+  if (typeof data !== "object") return
 
   for (const key in pattern) {
-    if (!(key in data)) return false
-    if (!match(pattern[key])(data[key])) return false
+    if (!(key in data)) return
+    if (!match(pattern[key])(data[key])) return
+  }
+
+  return true
+}
+
+export const matchArray = pattern => data => {
+  if (!Array.isArray(pattern)) return
+  if (typeof data !== "object") return
+
+  for (let i = 0; i < pattern.length; i++) {
+    // Todo: pass matched vars
+    if (!match(pattern[i])(data[i])) return
   }
 
   return true
@@ -130,18 +131,20 @@ export const matchObject = pattern => data => {
 
 export const deepEqual = a => b => {
   if (a === b) return true
-  if (typeof a !== typeof b) return false
-  if (typeof a !== "object") return false
+  if (typeof a !== typeof b) return
+  if (typeof a !== "object") return
 
   for (const key in a) {
-    if (!(key in b)) return false
-    if (!deepEqual(a[key])(b[key])) return false
+    if (!(key in b)) return
+    if (!deepEqual(a[key])(b[key])) return
   }
 
   return true
 }
 
 export function matchType(pattern) {
+  // TODO: tuples
+
   switch (pattern.__type) {
     case "any":
       return _data => true
@@ -163,14 +166,14 @@ export function matchType(pattern) {
   }
 }
 
-import { test } from "./Testing.mjs"
-test(match, ({ eq }) => {
-  const matches = (p, v) => eq(match(p)(v), true)
-  const noMatch = (p, v) => eq(match(p)(v), false)
+test(match, ({ truthy, falsy }) => {
+  const matches = (p, v) => truthy(match(p)(v))
+  const noMatch = (p, v) => falsy(match(p)(v))
 
   matches(T.Any, 1234)
 
   matches(Number, 1234)
+  noMatch(Number, "no")
   matches(T.Number, 1234)
   noMatch(T.Number, "no")
 
@@ -190,4 +193,41 @@ test(match, ({ eq }) => {
   noMatch(T.Pattern(T.Number), T.String)
   noMatch(T.Pattern(T.Number), 1234)
   matches(T.Pattern(1), 1)
+})
+
+guard(guard, [T.Function(), [T.Any]])
+export function guard(fn, inputs) {
+  fn.inputs = inputs
+  fn.with = makeFn(guardedCall, {
+    name: `guarded_${fn.name || "anonymous"}`,
+  })
+  fn.ensure = makeFn(guardedThrowCall, {
+    name: `guarded_throw_${fn.name || "anonymous"}`,
+  })
+
+  return fn.with
+
+  function guardedCall(...inputs) {
+    const ctx = matchInputs(fn, inputs)
+    return ctx ? fn(...inputs) : null
+  }
+
+  function guardedThrowCall(...inputs) {
+    const ctx = matchInputs(fn, inputs)
+    if (!ctx) throw new Error(`Invalid inputs: ${inputs}.`)
+    return fn(...inputs)
+  }
+}
+
+test(guard, ({ eq }) => {
+  guard(add, [Number, Number])
+  function add(a, b) {
+    return a + b
+  }
+
+  eq(add(1, 2), 3)
+  eq(add.with(1, 2), 3)
+  eq(add.with(1, 2, 9), 3)
+  eq(add.with("hi", 2), null)
+  eq(add.with(1, "hi"), null)
 })
