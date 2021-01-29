@@ -391,27 +391,32 @@ function originalPlugin({self}) {
     return results;
   };
 }
-var isFunction = (x) => typeof x === "function";
-var apply = (fn, ...xs) => [...iter(fn(...xs))].filter(isFunction);
-function run(fns3, ...xs) {
+function runWith(fns3, input, state2, send2) {
   const out = [];
-  for (const fn of iter(fns3))
-    out.push(...apply(fn, ...xs));
-  return out;
+  const delayed = [];
+  for (const fn of fns3) {
+    const result = fn(input, state2);
+    for (let reply of iter(result)) {
+      if (typeof reply === "function")
+        reply = result(send2);
+      if (reply != null) {
+        if (typeof reply.then === "function")
+          delayed.push(reply);
+        else
+          out.push(reply);
+      }
+    }
+  }
+  return out.push(...delayed);
 }
-var runWith = (fns3, ...steps) => {
-  if (steps.length === 0)
-    return;
-  runWith(run(fns3, ...steps), ...steps.slice(1));
-};
 test(make, ({eq: eq2}) => {
   const self = make();
-  self((input) => (state2) => {
+  self((input, state2) => {
     var _a;
     (_a = state2.count) != null ? _a : state2.count = 0;
     state2.count++;
   }, (input) => {
-  }, (input) => input.testing = true, (input) => (state2) => (send2) => {
+  }, (input) => input.testing = true, (input, state2) => (send2) => {
     if (state2.count === 4)
       send2({msg: "count is 4!"});
   });
@@ -426,32 +431,30 @@ var pre = (fn, ...parts) => (...args2) => fn(...parts, ...args2);
 import {
   v4
 } from "uuid";
-var acceptIndexes = (input) => (state2) => {
+function acceptIndexes(input, state2) {
   var _a, _b;
   (_a = state2.indexers) != null ? _a : state2.indexers = {};
   for (const [name, fn] of entries(input.indexers)) {
     state2.indexers[name] = fn;
     (_b = state2[name]) != null ? _b : state2[name] = state2[name];
   }
-};
-function findId(input) {
+}
+function findId(input, state2) {
   if (input.id)
     return;
-  return (state2) => {
-    for (const [name, indexer] of entries(state2.indexers)) {
-      const index = state2[name];
-      if (!index)
+  for (const [name, indexer] of entries(state2.indexers)) {
+    const index = state2[name];
+    if (!index)
+      return;
+    for (const key of iter(indexer(input))) {
+      if (index[key]) {
+        input.id = index[key];
         return;
-      for (const key of iter(indexer(input))) {
-        if (index[key]) {
-          input.id = index[key];
-          return;
-        }
       }
     }
-  };
+  }
 }
-var populateFromId = (input) => (state2) => {
+function populateFromId(input, state2) {
   var _a;
   if (!input.id)
     return;
@@ -461,8 +464,8 @@ var populateFromId = (input) => (state2) => {
     deepAssign(cached, current(input));
     deepAssign(input, current(cached));
   }
-};
-var writeIndexes = (input) => (state2) => {
+}
+function writeIndexes(input, state2) {
   var _a, _b, _c;
   for (const [name, indexer] of entries(state2.indexers)) {
     (_a = state2[name]) != null ? _a : state2[name] = {};
@@ -472,13 +475,13 @@ var writeIndexes = (input) => (state2) => {
       state2[name][key] = input.id;
     }
   }
-};
-function writeToCache(input) {
+}
+function writeToCache(input, state2) {
   var _a, _b, _c, _d;
   if (!input.id)
     return;
-  (_a = state.byId) != null ? _a : state.byId = {};
-  const cached = (_d = (_b = state.byId)[_c = input.id]) != null ? _d : _b[_c] = {};
+  (_a = state2.byId) != null ? _a : state2.byId = {};
+  const cached = (_d = (_b = state2.byId)[_c = input.id]) != null ? _d : _b[_c] = {};
   deepAssign(cached, current(input));
   deepAssign(input, current(cached));
 }
@@ -544,21 +547,21 @@ function parseMarkdown(input) {
 var all = [parseMarkdown];
 
 // .localhack/build/plugins/Literate.mjs
-function tangling(input) {
+function tangling(input, state2) {
+  var _a, _b;
   const {path: path3, markdown: markdown2} = input;
   if (!path3)
     return;
   if (!markdown2)
     return;
-  return (state2) => (send2) => {
-    var _a, _b;
-    const code = {};
-    for (const node2 of iter(markdown2)) {
-      if (node2.type !== "fence")
-        continue;
-      const blocks = (_b = code[_a = node2.info]) != null ? _b : code[_a] = [];
-      blocks.push(node2.content);
-    }
+  const code = {};
+  for (const node2 of iter(markdown2)) {
+    if (node2.type !== "fence")
+      continue;
+    const blocks = (_b = code[_a = node2.info]) != null ? _b : code[_a] = [];
+    blocks.push(node2.content);
+  }
+  return (send2) => {
     for (const [ext, blocks] of entries(code)) {
       send2({
         virtual: true,
@@ -573,11 +576,11 @@ var all2 = [tangling];
 // .localhack/build/plugins/build.mjs
 var {COPYFILE_FICLONE} = constants;
 var isJsPath = (path22) => /\.(mjs|js)x?$/.test(path22);
-function globbing(input) {
+function globbing(input, state2) {
   const globs = input.glob;
   if (!globs)
     return;
-  return (state2) => async (send2) => {
+  return async (send2) => {
     for await (const path22 of fg.stream(root(globs), {
       dot: true,
       absolute: true
@@ -586,7 +589,7 @@ function globbing(input) {
     }
   };
 }
-function reading(input) {
+function reading(input, state2) {
   if (input.reading)
     return;
   if (!input.path)
@@ -595,12 +598,12 @@ function reading(input) {
     return;
   const {path: path22} = input;
   input.reading = true;
-  return (state2) => async (send2) => {
+  return async (send2) => {
     const text = await readFile(path22).then(String);
     send2({path: path22, text, persisted: true, reading: false});
   };
 }
-function writing(input) {
+function writing(input, state2) {
   if (input.persisted)
     return;
   if (input.virtual)
@@ -611,7 +614,7 @@ function writing(input) {
     return;
   const {path: path22, text} = input;
   const mode = text.startsWith("#!") ? 493 : 420;
-  return (state2) => async (send2) => {
+  return async (send2) => {
     await mkdir(dirname(path22), {recursive: true});
     await writeFile(path22, text, {
       mode
@@ -623,7 +626,7 @@ function writing(input) {
 var loaders = {
   ".ohm": "text"
 };
-function transpiling(input) {
+function transpiling(input, state2) {
   const {name, path: path22, text} = input;
   if (!path22)
     return;
@@ -632,7 +635,7 @@ function transpiling(input) {
   if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path22))
     return;
   const outputPath = path22.replace("/src/", "/.localhack/build/").replace(/\/Readme\.(\w+)$/, ".$1");
-  return (state2) => async (send2) => {
+  return async (send2) => {
     const {code} = await Esbuild.transform(text, {
       sourcefile: name != null ? name : path22,
       target: "node12",
@@ -647,12 +650,12 @@ function transpiling(input) {
     });
   };
 }
-function bundling(input) {
+function bundling(input, state2) {
   const {name, dist: dist2} = input;
   if (!dist2)
     return;
   const entryPoints = fg.sync(dist2).filter(isJsPath);
-  return (state2) => async (send2) => {
+  return async (send2) => {
     const {outputFiles, warnings} = await Esbuild.build({
       entryPoints,
       platform: "node",
@@ -685,8 +688,8 @@ function bundling(input) {
     }
   };
 }
-function watching(input) {
-  return (state2) => (send2) => {
+function watching(input, state2) {
+  return (send2) => {
     var _a;
     (_a = state2.watcher) != null ? _a : state2.watcher = watch(src(), {recursive: true}, async (event, relativePath) => {
       if (event !== "change")
@@ -711,8 +714,8 @@ var all3 = [
 ];
 
 // .localhack/build/plugins/CLI.mjs
-function parseFlags(input) {
-  var _a, _b, _c;
+function parseFlags(input, state2) {
+  var _a, _b, _c, _d;
   for (const arg of iter(input.args)) {
     const [m, name, value] = arg.match(/^--(\w[-_\w]*)(?:=(\w+))?$/) || [];
     if (!name)
@@ -722,11 +725,8 @@ function parseFlags(input) {
     if (value)
       input.flags[name].push(value);
   }
-  return (state2) => {
-    var _a2;
-    (_a2 = state2.flags) != null ? _a2 : state2.flags = {};
-    Object.assign(state2.flags, input.flags);
-  };
+  (_d = state2.flags) != null ? _d : state2.flags = {};
+  Object.assign(state2.flags, input.flags);
 }
 var all4 = [parseFlags];
 
@@ -742,47 +742,43 @@ send({
   cmd,
   args
 });
-function cli(input) {
+function cli(input, state2) {
   if (!("cmd" in input))
     return;
-  return (state2) => {
-    state2.cwd = input.cwd;
-    state2.cmd = input.cmd;
-    state2.args = current(input.args);
-    return (send2) => {
-      if (state2.flags.debug)
-        send2(trace(state2.flags.debug));
-      switch (input.cmd) {
-        case void 0:
-          return send2(usageCmd);
-        case "build":
-          return send2(buildCmd);
-        case "dist":
-          return send2(distCmd);
-        case "test":
-          return send2(testCmd);
-        case "watch":
-          return send2(buildCmd, watchCmd);
-        case "ui":
-          return send2(buildCmd, watchCmd, uiCmd);
-      }
-    };
+  state2.cwd = input.cwd;
+  state2.cmd = input.cmd;
+  state2.args = current(input.args);
+  return (send2) => {
+    if (state2.flags.debug)
+      send2(trace(state2.flags.debug));
+    switch (input.cmd) {
+      case void 0:
+        return send2(usageCmd);
+      case "build":
+        return send2(buildCmd);
+      case "dist":
+        return send2(distCmd);
+      case "test":
+        return send2(testCmd);
+      case "watch":
+        return send2(buildCmd, watchCmd);
+      case "ui":
+        return send2(buildCmd, watchCmd, uiCmd);
+    }
   };
 }
-function usageCmd(input) {
+function usageCmd(input, state2) {
   if (input !== usageCmd)
     return;
-  return (state2) => {
-    if (state2.cmd)
-      return;
-    console.log("Welcome to LocalHack");
-  };
+  if (state2.cmd)
+    return;
+  console.log("Welcome to LocalHack");
 }
-function buildCmd(input) {
+function buildCmd(input, state2) {
   if (input !== buildCmd)
     return;
   const glob = "src/**/*.{html,ts,js,mjs,md,ohm}";
-  return (state2) => (send2) => {
+  return (send2) => {
     if (state2.flags.watch)
       send2(watchCmd);
     if (state2.flags.dist)
@@ -790,11 +786,11 @@ function buildCmd(input) {
     send2({glob});
   };
 }
-function distCmd(input) {
+function distCmd(input, state2) {
   if (input !== distCmd)
     return;
   const dist2 = build("entries/*.{html,ts,js,mjs}");
-  return (state2) => (send2) => {
+  return (send2) => {
     if (state2.flags.watch)
       send2(watchCmd);
     send2(bundling, {dist: dist2});
@@ -807,19 +803,21 @@ function testCmd(input) {
     import(build(arg));
   }
 }
-function uiCmd(input) {
+function uiCmd(input, state2) {
   if (input !== uiCmd)
     return;
-  return (state2) => async (send2) => {
+  return async (send2) => {
     const child = execFile(electron2, [file(entry("electron.js")), "main.mjs"], (err) => {
       if (err)
         return console.error(err);
     });
   };
 }
-function watchCmd(input) {
+function watchCmd(input, state2) {
   if (input !== watchCmd)
     return;
-  console.log(`Watching for changes...`);
-  send(watching);
+  return (send2) => {
+    console.log(`Watching for changes...`);
+    send2(watching);
+  };
 }
