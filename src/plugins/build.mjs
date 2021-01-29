@@ -20,7 +20,7 @@ export function globbing(input) {
   const globs = input.glob
   if (!globs) return
 
-  return state => async send => {
+  return async (state, send) => {
     for await (const path of fg.stream(project.root(globs), {
       dot: true,
       absolute: true,
@@ -41,7 +41,7 @@ export function reading(input) {
   const { path } = input
   input.reading = true
 
-  return state => async send => {
+  return async (state, send) => {
     const text = await readFile(path).then(String)
     send({ path, text, persisted: true, reading: false })
   }
