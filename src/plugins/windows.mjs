@@ -4,6 +4,7 @@ import * as project from "../lib/project.mjs"
 
 const { app, BrowserWindow } = electron
 
+// Todo update from legacy api
 export const windows = send => {
   app.on("activate", onActivate)
   app.whenReady().then(onReady)

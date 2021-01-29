@@ -24,20 +24,20 @@ import { iter, entries } from "../lib/edit.mjs"
 First we'll define a plugin that tangles our markdown source.
 
 ```mjs
-export function tangling(input) {
+export function tangling(input, state) {
   const { path, markdown } = input
   if (!path) return
   if (!markdown) return
 
-  return state => send => {
-    const code = {}
-    for (const node of iter(markdown)) {
-      if (node.type !== "fence") continue
+  const code = {}
+  for (const node of iter(markdown)) {
+    if (node.type !== "fence") continue
 
-      const blocks = (code[node.info] ??= [])
-      blocks.push(node.content)
-    }
+    const blocks = (code[node.info] ??= [])
+    blocks.push(node.content)
+  }
 
+  return send => {
     for (const [ext, blocks] of entries(code)) {
       send({
         virtual: true,

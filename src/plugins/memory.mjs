@@ -8,7 +8,7 @@ export function handleFunctionIds(input) {
 }
 
 /** Records sent indexes. */
-export const acceptIndexes = input => state => {
+export function acceptIndexes(input, state) {
   state.indexers ??= {}
 
   for (const [name, fn] of entries(input.indexers)) {
@@ -18,19 +18,17 @@ export const acceptIndexes = input => state => {
 }
 
 /** Use our recorded indexes to find ids for id-less inputs. */
-export function findId(input) {
+export function findId(input, state) {
   if (input.id) return
 
-  return state => {
-    for (const [name, indexer] of entries(state.indexers)) {
-      const index = state[name]
-      if (!index) return
+  for (const [name, indexer] of entries(state.indexers)) {
+    const index = state[name]
+    if (!index) return
 
-      for (const key of iter(indexer(input))) {
-        if (index[key]) {
-          input.id = index[key]
-          return
-        }
+    for (const key of iter(indexer(input))) {
+      if (index[key]) {
+        input.id = index[key]
+        return
       }
     }
   }
@@ -40,7 +38,7 @@ export function findId(input) {
  * Update our cache with data from the input and fill in the input's properties
  * with values from the cache.
  */
-export const populateFromId = input => state => {
+export function populateFromId(input, state) {
   if (!input.id) return
 
   state.byId ??= {}
@@ -56,7 +54,7 @@ export const populateFromId = input => state => {
  * Index the current input using our indexers. If the input can be indexed and
  * has no id, then it is given one.
  */
-export const writeIndexes = input => state => {
+export function writeIndexes(input, state) {
   for (const [name, indexer] of entries(state.indexers)) {
     state[name] ??= {}
 
@@ -72,7 +70,7 @@ export const writeIndexes = input => state => {
 /**
  * Cache any input that has an id.
  */
-export function writeToCache(input) {
+export function writeToCache(input, state) {
   if (!input.id) return
 
   state.byId ??= {}

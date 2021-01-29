@@ -21,63 +21,57 @@ send({
   args,
 })
 
-function cli(input) {
+function cli(input, state) {
   if (!("cmd" in input)) return
+  state.cwd = input.cwd
+  state.cmd = input.cmd
+  state.args = current(input.args)
 
-  return state => {
-    state.cwd = input.cwd
-    state.cmd = input.cmd
-    state.args = current(input.args)
+  return send => {
+    if (state.flags.debug) send(trace(state.flags.debug))
 
-    return send => {
-      if (state.flags.debug) send(trace(state.flags.debug))
-
-      switch (input.cmd) {
-        case undefined:
-          return send(usageCmd)
-        case "build":
-          return send(buildCmd)
-        case "dist":
-          return send(distCmd)
-        case "test":
-          return send(testCmd)
-        case "watch":
-          return send(buildCmd, watchCmd)
-        case "ui":
-          return send(buildCmd, watchCmd, uiCmd)
-      }
+    switch (input.cmd) {
+      case undefined:
+        return send(usageCmd)
+      case "build":
+        return send(buildCmd)
+      case "dist":
+        return send(distCmd)
+      case "test":
+        return send(testCmd)
+      case "watch":
+        return send(buildCmd, watchCmd)
+      case "ui":
+        return send(buildCmd, watchCmd, uiCmd)
     }
   }
 }
 
-function usageCmd(input) {
+function usageCmd(input, state) {
   if (input !== usageCmd) return
+  if (state.cmd) return
 
-  return state => {
-    if (state.cmd) return
-
-    console.log("Welcome to LocalHack")
-  }
+  console.log("Welcome to LocalHack")
 }
 
-function buildCmd(input) {
+function buildCmd(input, state) {
   if (input !== buildCmd) return
 
   const glob = "src/**/*.{html,ts,js,mjs,md,ohm}"
 
-  return state => send => {
+  return send => {
     if (state.flags.watch) send(watchCmd)
     if (state.flags.dist) send(distCmd)
     send({ glob })
   }
 }
 
-function distCmd(input) {
+function distCmd(input, state) {
   if (input !== distCmd) return
 
   const dist = project.build("entries/*.{html,ts,js,mjs}")
 
-  return state => send => {
+  return send => {
     if (state.flags.watch) send(watchCmd)
 
     send(build.bundling, { dist })
@@ -92,10 +86,10 @@ function testCmd(input) {
   }
 }
 
-function uiCmd(input) {
+function uiCmd(input, state) {
   if (input !== uiCmd) return
 
-  return state => async send => {
+  return async send => {
     const child = execFile(
       electron,
       [project.file(project.entry("electron.js")), "main.mjs"],
@@ -106,9 +100,11 @@ function uiCmd(input) {
   }
 }
 
-function watchCmd(input) {
+function watchCmd(input, state) {
   if (input !== watchCmd) return
 
-  console.log(`Watching for changes...`)
-  send(build.watching)
+  return send => {
+    console.log(`Watching for changes...`)
+    send(build.watching)
+  }
 }

@@ -19,7 +19,7 @@ FlagParser {
 ```mjs
 import { iter } from "../lib/edit.mjs"
 
-export function parseFlags(input) {
+export function parseFlags(input, state) {
   for (const arg of iter(input.args)) {
     const [m, name, value] = arg.match(/^--(\w[-_\w]*)(?:=(\w+))?$/) || []
     if (!name) continue
@@ -28,10 +28,8 @@ export function parseFlags(input) {
     if (value) input.flags[name].push(value)
   }
 
-  return state => {
-    state.flags ??= {}
-    Object.assign(state.flags, input.flags)
-  }
+  state.flags ??= {}
+  Object.assign(state.flags, input.flags)
 }
 
 export const all = [parseFlags]

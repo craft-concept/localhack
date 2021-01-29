@@ -16,11 +16,11 @@ export const isJsPath = path => /\.(mjs|js)x?$/.test(path)
 /**
  * Plugin that turns globs into source files.
  */
-export function globbing(input) {
+export function globbing(input, state) {
   const globs = input.glob
   if (!globs) return
 
-  return async (state, send) => {
+  return async send => {
     for await (const path of fg.stream(project.root(globs), {
       dot: true,
       absolute: true,
@@ -33,7 +33,7 @@ export function globbing(input) {
 /**
  * Plugin that reads files as text.
  */
-export function reading(input) {
+export function reading(input, state) {
   if (input.reading) return
   if (!input.path) return
   if (exists(input.text)) return
@@ -41,7 +41,7 @@ export function reading(input) {
   const { path } = input
   input.reading = true
 
-  return async (state, send) => {
+  return async send => {
     const text = await readFile(path).then(String)
     send({ path, text, persisted: true, reading: false })
   }
@@ -50,7 +50,7 @@ export function reading(input) {
 /**
  * Plugin that writes text to files.
  */
-export function writing(input) {
+export function writing(input, state) {
   if (input.persisted) return
   if (input.virtual) return
   if (!input.path) return
@@ -59,7 +59,7 @@ export function writing(input) {
   const { path, text } = input
   const mode = text.startsWith("#!") ? 0o755 : 0o644
 
-  return state => async send => {
+  return async send => {
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, text, {
       mode,
@@ -75,7 +75,7 @@ export const loaders = {
   ".ohm": "text",
 }
 
-export function transpiling(input) {
+export function transpiling(input, state) {
   const { name, path, text } = input
 
   if (!path) return
@@ -86,7 +86,7 @@ export function transpiling(input) {
     .replace("/src/", "/.localhack/build/")
     .replace(/\/Readme\.(\w+)$/, ".$1")
 
-  return state => async send => {
+  return async send => {
     const { code } = await Esbuild.transform(text, {
       sourcefile: name ?? path,
       target: "node12",
@@ -104,14 +104,14 @@ export function transpiling(input) {
   }
 }
 
-export function bundling(input) {
+export function bundling(input, state) {
   const { name, dist } = input
 
   if (!dist) return
 
   const entryPoints = fg.sync(dist).filter(isJsPath)
 
-  return state => async send => {
+  return async send => {
     const { outputFiles, warnings } = await Esbuild.build({
       entryPoints,
       platform: "node",
@@ -146,8 +146,8 @@ export function bundling(input) {
   }
 }
 
-export function watching(input) {
-  return state => send => {
+export function watching(input, state) {
+  return send => {
     state.watcher ??= fs.watch(
       project.src(),
       { recursive: true },

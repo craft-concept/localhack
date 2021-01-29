@@ -108,29 +108,25 @@ export const isFunction = x => typeof x === "function"
 export const apply = (fn, ...xs) => [...iter(fn(...xs))].filter(isFunction)
 ```
 
-Each plugin runs in a series of stages: `input => state => send => {}`.
-
-`run` executes a single stage and collects the returned functions. These
-functions can then be passed to run along with the next stage's input.
+`runWith` applies `input, state` to each function. Each function in `fns` can
+return another function (often async) which receives `send`.
 
 ```mjs
-export function run(fns, ...xs) {
+export function runWith(fns, input, state, send) {
   const out = []
-  for (const fn of iter(fns)) out.push(...apply(fn, ...xs))
-  return out
-}
-```
+  const delayed = []
+  for (const fn of fns) {
+    const result = fn(input, state)
+    for (let reply of iter(result)) {
+      if (typeof reply === "function") reply = result(send)
+      if (reply != null) {
+        if (typeof reply.then === "function") delayed.push(reply)
+        else out.push(reply)
+      }
+    }
+  }
 
-`runWith` accepts a series of values (generally `input, state, send`) and uses
-`run` to apply one after another to a set of plugins (`fns`). Each function in
-`fns` can return another function which receives the next value in the series of
-`steps`.
-
-```mjs
-export const runWith = (fns, ...steps) => {
-  if (steps.length === 0) return
-
-  runWith(run(fns, ...steps), ...steps.slice(1))
+  return out.push(...delayed)
 }
 ```
 
@@ -142,13 +138,13 @@ test(make, ({ eq }) => {
   const self = make()
 
   self(
-    input => state => {
+    (input, state) => {
       state.count ?? (state.count = 0)
       state.count++
     },
     input => {},
     input => (input.testing = true),
-    input => state => send => {
+    (input, state) => send => {
       if (state.count === 4) send({ msg: "count is 4!" })
     },
   )
@@ -170,18 +166,14 @@ mind.
   - Only possible during config time. Used for internals.
 
 I think it could be neat to put the meta stage at the end:
-`input => state => send => self => void`. Meta-plugins would be registered
+`(input, state) => send => self => void`. Meta-plugins would be registered
 separately and would be called an extra time with `self`. One neat side-effect
 is that meta-plugins could still operate as standard plugins.
 
-- Stage: Input
-
-  - `input => { mutate(input) }`
-
-- Stage: Transform `input => state => { mutate(input) & mutate(state) }`
+- Stage: Transform `(input, state) => { mutate(input) & mutate(state) }`
 
 - Stage: Output
-  - `input => state => send => { send(futureInputs) }`
+  - `(input, state) => send => { send(futureInputs) }`
 
 Set of meta-plugins that gets the raw input, state, and send. I guess that'd be
 the same as simply replacing send.

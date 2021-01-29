@@ -15,7 +15,7 @@ const ROOT = process.cwd()
 ```mjs
 export function resolve(specifier, { conditions, parentURL }, defaultResolve) {
   // fg.sync([], { onlyFiles: true })
-  console.log("resolving:", specifier)
+  // console.log("resolving:", specifier)
   return defaultResolve(specifier, { conditions, parentURL }, defaultResolve)
 }
 ```
