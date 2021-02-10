@@ -84,6 +84,7 @@ export function originalPlugin({ self }) {
 
         for (const input of iter(inputs)) {
           if (typeof input === "function") state.plugins.push(input)
+          if (typeof input.with === "function") state.plugins.push(input.with)
 
           runWith(state.plugins, input, state, self.send)
         }

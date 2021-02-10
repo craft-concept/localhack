@@ -20,12 +20,19 @@ export const T = {
 
   Many: item => T.OneOf(item, T.Array(item)),
 
+  Enum: item => T.OneOf(item, T.Iterable(item)),
+
   Function: (...inputs) => ({
     __type: "function",
     inputs,
   }),
 
   Maybe: item => T.OneOf(T.Nil, item),
+
+  Iterable: pattern => ({
+    __type: "iterable",
+    pattern,
+  }),
 
   Pattern: pattern => ({
     __type: "pattern",
@@ -53,7 +60,7 @@ export function reify(pattern) {
     case Boolean:
       return T.Boolean
     case Function:
-      return T.Function(T.Any)
+      return T.Function(...(pattern.inputs || [T.Any]))
     default:
       return pattern
   }
@@ -62,9 +69,9 @@ export function reify(pattern) {
 /**
  * Define a function that exposes its input and output types as patterns.
  */
-export function fn(input, f, output = undefined) {
+export function fn(inputs, f, output = undefined) {
   return makeFn(f, {
-    input,
+    inputs,
     output,
   })
 }
@@ -160,6 +167,9 @@ export function matchType(pattern) {
 
     case "pattern":
       return deepEqual(pattern.pattern)
+
+    case "iterable":
+      throw new Error(`Not yet sure how to implement iterable pattern matching`)
 
     default:
       return data => pattern.__type === typeof data
