@@ -79,6 +79,11 @@ export function test(subject, fn) {
     }
   }
 }
+
+Function.prototype.test = function testSelf(...inputs) {
+  test(this, ...inputs)
+  return this
+}
 ```
 
 And we define some helpers for handling stack traces.

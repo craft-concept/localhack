@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import "../lib/Testing.mjs"
 import { make } from "../lib/Sift.mjs"
 import { current, iter } from "../lib/edit.mjs"
 import { standard, debugging, trace } from "../plugins/std.mjs"
