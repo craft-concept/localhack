@@ -14,7 +14,7 @@ export function* iter(x) {
   }
 }
 
-test(iter, ({ eq }) => {
+iter.test?.(({ eq }) => {
   eq([...iter()], [])
   eq([...iter(null)], [])
   eq([...iter(undefined)], [])
@@ -47,7 +47,7 @@ export function* withNext(iterable) {
   } while (res.done === false)
 }
 
-test(withNext, ({ eq }) => {})
+withNext.test?.(({ eq }) => {})
 ```
 
 ```mjs
@@ -56,7 +56,7 @@ export function isEmpty(x) {
   return true
 }
 
-test(isEmpty, ({ eq }) => {
+isEmpty.test?.(({ eq }) => {
   eq(isEmpty(null), true)
   eq(isEmpty([]), true)
   eq(isEmpty([1]), false)
@@ -100,7 +100,7 @@ export const iterMap = fn =>
     for (const v of iter(xs)) yield* iter(fn(v))
   }
 
-test(iterMap, ({ eq }) => {
+iterMap.test?.(({ eq }) => {
   const inc = x => x + 1
   const evenOnly = x => (x % 2 === 0 ? x : null)
   const incs = iterMap(inc)
@@ -175,6 +175,11 @@ export class Enum {
     return this.each(fn)
   }
 
+  get first() {
+    const [x] = this.iter()
+    return x
+  }
+
   get array() {
     return (this._array ??= [...this.iter()])
   }
@@ -183,14 +188,8 @@ export class Enum {
     return (this._set ??= new Set(this.iter()))
   }
 }
-```
 
-And some tests for `Enum`:
-
-```mjs
-import { test } from "./Testing.mjs"
-
-test(Enum, ({ eq }) => {
+Enum.test?.(({ eq }) => {
   const inc = x => x + 1
   const dup = x => [x, x]
 
@@ -199,6 +198,9 @@ test(Enum, ({ eq }) => {
 
   eq([...en], [1, 2, 3])
   eq([...en2], [1, 2, 3])
+
+  eq(en.first, 1)
+  eq(en2.first, 1)
 
   eq(en.array, [1, 2, 3])
   eq(en2.array, [1, 2, 3])
@@ -223,7 +225,7 @@ test(Enum, ({ eq }) => {
   eq(en.set, new Set([1, 2, 3]))
   eq(en2.set, new Set([1, 2, 3]))
 
-  test(en.select, () => {
+  en.select.test(() => {
     const isOdd = x => x % 2
 
     eq(en.select(isOdd).array, [1, 3])
