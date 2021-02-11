@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+if (process.version < "v14.11") {
+  console.log(`Node ${process.version} is too old. v14.11+ is required.`)
+  process.exit(1)
+}
+
 import "../lib/Testing.mjs"
 import { make } from "../lib/Sift.mjs"
 import { current, iter } from "../lib/edit.mjs"
