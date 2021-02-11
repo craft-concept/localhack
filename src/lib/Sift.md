@@ -113,13 +113,14 @@ export const apply = (fn, ...xs) => [...iter(fn(...xs))].filter(isFunction)
 return another function (often async) which receives `send`.
 
 ```mjs
-export function runWith(fns, input, state, send) {
+export function runWith(plugins, input, state, send) {
   const out = []
   const delayed = []
-  for (const fn of fns) {
-    const result = fn(input, state)
+  for (const plugin of plugins) {
+    const local = (state[plugin.key || plugin.name || "anonymous"] ??= {})
+    const result = plugin.call(local, input, state)
     for (let reply of iter(result)) {
-      if (typeof reply === "function") reply = result(send)
+      if (typeof reply === "function") reply = result.call(local, send)
       if (reply != null) {
         if (typeof reply.then === "function") delayed.push(reply)
         else out.push(reply)
@@ -148,10 +149,14 @@ test(make, ({ eq }) => {
     (input, state) => send => {
       if (state.count === 4) send({ msg: "count is 4!" })
     },
+    function test1(input) {
+      this.foo = "success"
+    },
   )
 
   eq(self({}), [{ testing: true }])
-  eq(self.state.count, 6)
+  eq(self.state.count, 7)
+  eq(self.state.test1.foo, "success")
 })
 ```
 
