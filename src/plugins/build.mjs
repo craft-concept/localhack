@@ -71,6 +71,17 @@ export function writing(input, state) {
   }
 }
 
+export function resolveImports(input, state) {
+  const { path, text } = input
+  if (!path) return
+  if (!text) return
+
+  input.text = text.replaceAll(
+    /^(\s*import[^'"]*from\s*['"])([^.]+)(['"])/gm,
+    "$1$2$3",
+  )
+}
+
 export const loaders = {
   ".ohm": "text",
 }

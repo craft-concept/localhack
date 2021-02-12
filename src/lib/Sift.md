@@ -68,7 +68,9 @@ This plugin implements:
 
 ```mjs
 export function originalPlugin({ self }) {
-  return (...inputs) => {
+  return send
+
+  function* send(...inputs) => {
     if (self.sending) {
       self.queue ??= []
       self.queue.push(...iter(inputs))

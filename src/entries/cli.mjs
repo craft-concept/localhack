@@ -11,6 +11,7 @@ import { current, iter } from "../lib/edit.mjs"
 import { standard, debugging, trace } from "../plugins/std.mjs"
 import * as build from "../plugins/build.mjs"
 import * as CLI from "../plugins/CLI.mjs"
+import * as http from "../plugins/http.mjs"
 import * as project from "../lib/project.mjs"
 import electron from "electron"
 import { execFile, spawn } from "child_process"
@@ -19,7 +20,7 @@ const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = make()
 
-send(standard, build.all, CLI.all, cli)
+send(standard, http.all, build.all, CLI.all, cli)
 
 send({
   cwd,
