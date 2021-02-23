@@ -4,8 +4,17 @@
 `lib.mjs`.
 
 ```mjs
-export { isNil, exists, reify, deepAssign } from "./edit.mjs"
-export { Enum, iter, entries, keys, values } from "./Enum.mjs"
-export { T, isObj } from "./reify.mjs"
-export { test } from "./Testing.mjs"
+export {
+  edit,
+  isNil,
+  exists,
+  reify,
+  deepAssign,
+  current,
+  original,
+} from "./lib/edit.mjs"
+export { Enum, iter, entries, keys, values } from "./lib/Enum.mjs"
+export { Future } from "./lib/Future.mjs"
+export { T, isObj } from "./lib/reify.mjs"
+export { test } from "./lib/Testing.mjs"
 ```

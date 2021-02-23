@@ -1,5 +1,5 @@
 import { fnWith } from "../lib/fns.mjs"
-import { current, original, deepAssign, keys, entries } from "../lib/edit.mjs"
+import { current, original, deepAssign, keys, entries } from "../lib.mjs"
 import * as memory from "./memory.mjs"
 
 /**

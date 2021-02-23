@@ -36,6 +36,17 @@ iter.test?.(({ eq }) => {
 ```
 
 ```mjs
+/**
+ * Returns a function that maps over its inputs, passing each through `fn`.
+ */
+export const iterate = fn => (...inputs) => {
+  const out = []
+  for (const input of iter(inputs)) out.push(...iter(fn(input)))
+  return out
+}
+```
+
+```mjs
 export function* withNext(iterable) {
   let it = iter(iterable),
     val,
@@ -73,6 +84,7 @@ export function* fns(...x) {
 Some object iteration helpers:
 
 ```mjs
+import { edit } from "./edit.mjs"
 import { isObj } from "./reify.mjs"
 
 /** Iterate over the keys of an object. */
@@ -144,9 +156,26 @@ export class Enum {
     })
   }
 
+  flatMap(fn) {
+    return this.chain(fn)
+  }
+
+  edit(fn) {
+    return this.map(edit(fn))
+  }
+
   map(fn) {
     return this.gen(function* mapped(xs) {
       for (const x of xs) yield fn(x)
+    })
+  }
+
+  selectMap(fn) {
+    return this.gen(function* selectMapped(xs) {
+      for (const x of xs) {
+        const res = fn(x)
+        if (res != null) yield res
+      }
     })
   }
 
@@ -154,14 +183,14 @@ export class Enum {
     return this.select(fn)
   }
 
-  select(fn) {
-    return this.gen(function* filtered(xs) {
+  select(fn = x => x != null) {
+    return this.gen(function* selected(xs) {
       for (const x of xs) if (fn(x)) yield x
     })
   }
 
   reject(fn) {
-    return this.gen(function* filtered(xs) {
+    return this.gen(function* rejected(xs) {
       for (const x of xs) if (!fn(x)) yield x
     })
   }

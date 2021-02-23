@@ -7,7 +7,7 @@ Note: Keep in mind that sift is something we're still playing around with; it
 could be a terrible idea.
 
 The core of Sift is the plugin. A plugin is a function of this shape:
-`(input, state, send) => [reply]`
+`(input, state) => [reply]`
 
 The plugins are a bit strange however, in that both `input` and `state` are
 immer Draft proxy objects. This means that plugins can freely mutate both
@@ -23,9 +23,9 @@ Let's look at the code. We depend on `immer`, our testing lib, and some local
 data-structure helpers.
 
 ```mjs
-import { produce } from "immer"
-import { test } from "./Testing.mjs"
-import { iter, current, iterate } from "./edit.mjs"
+import { Enum, iter, iterate } from "./Enum.mjs"
+import { edit, current } from "./edit.mjs"
+import { Future } from "./Future.mjs"
 ```
 
 `make` is the small core of all sift instances. First, we create the `self`
@@ -78,8 +78,8 @@ export function originalPlugin({ self }) {
     self.sending = true
     self.state ??= {}
 
-    const results = produce(inputs, inputs => {
-      self.state = produce(self.state, state => {
+    const results = edit(inputs, inputs => {
+      self.state = edit(self.state, state => {
         state.plugins ?? (state.plugins = [])
 
         for (const input of iter(inputs)) {
@@ -130,13 +130,32 @@ export function runWith(plugins, input, state, send) {
 
   return out.push(...delayed)
 }
+
+export function runAll(fns, input, self) {
+  return Enum.of(fns).flatMap(run(input, self))
+}
+
+export function run(input, self) {
+  return fn => {
+    const { state } = self
+    const key = fn.key || fn.name || "anon"
+    const local = (state[key] ??= {})
+    const replies = fn.call(local, input, state, self)
+
+    return Enum.of(replies).selectMap(reply =>
+      typeof reply === "function"
+        ? Future.of(reply.bind(local, self.send))
+        : reply,
+    )
+  }
+}
 ```
 
 Now we define some tests using our custom testing library. These only run when
 `NODE_ENV=test`.
 
 ```mjs
-test(make, ({ eq }) => {
+make.test?.(({ eq }) => {
   const self = make()
 
   self(

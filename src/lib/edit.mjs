@@ -6,11 +6,7 @@ import {
   original as originalIm,
 } from "immer"
 import { T, isObj } from "./reify.mjs"
-import { Enum, iter, entries, keys, values } from "./Enum.mjs"
-
-/** Default type conversions. */
-export { T, isObj }
-export { Enum, iter, entries, keys, values }
+import { entries, keys, values } from "./Enum.mjs"
 
 /**
  * Returns whether `x` is null or undefined.
@@ -53,13 +49,11 @@ test(reify, ({ eq }) => {
   )
 })
 
-/**
- * Returns a function that maps over its inputs, passing each through `fn`.
- */
-export const iterate = fn => (...inputs) => {
-  const out = []
-  for (const input of iter(inputs)) out.push(...iter(fn(input)))
-  return out
+export function edit(objOrFn, fn = undefined) {
+  if (!fn) return obj => edit(obj, objOrFn)
+  return produce(objOrFn, draft => {
+    fn(draft)
+  })
 }
 
 export const DRAFT_STATE = Symbol.for("immer-state")

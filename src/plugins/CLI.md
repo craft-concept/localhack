@@ -17,7 +17,7 @@ FlagParser {
 ```
 
 ```mjs
-import { iter } from "../lib/edit.mjs"
+import { iter } from "../lib.mjs"
 
 export function parseFlags(input, state) {
   for (const arg of iter(input.args)) {

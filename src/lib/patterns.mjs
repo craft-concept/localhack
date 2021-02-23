@@ -13,10 +13,7 @@ export const T = {
 
   Tup: (...rest) => rest,
   Array: item => [item],
-  OneOf: (...opts) => ({
-    __type: "OneOf",
-    opts,
-  }),
+  OneOf: (...opts) => ({ __type: "OneOf", opts }),
 
   Many: item => T.OneOf(item, T.Array(item)),
 
@@ -29,20 +26,14 @@ export const T = {
 
   Maybe: item => T.OneOf(T.Nil, item),
 
-  Iterable: pattern => ({
-    __type: "iterable",
-    pattern,
-  }),
+  Iterable: pattern => ({ __type: "iterable", pattern }),
 
-  Pattern: pattern => ({
-    __type: "pattern",
-    pattern,
-  }),
+  /** Three names for the same thing. */
+  Ask: pattern => ({ __type: "pattern", pattern }),
+  Quote: pattern => ({ __type: "pattern", pattern }),
+  Pattern: pattern => ({ __type: "pattern", pattern }),
 
-  Rest: pattern => ({
-    __type: "rest",
-    pattern,
-  }),
+  Rest: pattern => ({ __type: "rest", pattern }),
 
   Var: (name, pattern = T.Any) => ({
     __type: "var",

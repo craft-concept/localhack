@@ -1,16 +1,18 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --no-warnings --experimental-loader=./.localhack/build/entries/NodeLoader.mjs
 
 if (process.version < "v14.11") {
   console.log(`Node ${process.version} is too old. v14.11+ is required.`)
   process.exit(1)
 }
 
-import "../lib/Testing.mjs"
+import "lib/Testing"
 import { make } from "../lib/Sift.mjs"
-import { current, iter } from "../lib/edit.mjs"
+import { current, iter } from "../lib.mjs"
 import { standard, debugging, trace } from "../plugins/std.mjs"
 import * as build from "../plugins/build.mjs"
 import * as CLI from "../plugins/CLI.mjs"
+import * as Files from "../plugins/Files.mjs"
+import * as Http from "../plugins/Http.mjs"
 import * as project from "../lib/project.mjs"
 import electron from "electron"
 import { execFile, spawn } from "child_process"
@@ -19,7 +21,14 @@ const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
 const send = make()
 
-send(standard, build.all, CLI.all, cli)
+send(
+  // Plugins
+  standard,
+  // Http.default,
+  Files.default,
+  CLI.all,
+  cli,
+)
 
 send({
   cwd,
