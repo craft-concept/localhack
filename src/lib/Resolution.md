@@ -34,7 +34,7 @@ export const defaultRoots = [join(process.cwd(), ".localhack/build")]
 
 export function* pathsFor(name, from, ...roots) {
   if (isRelative(name)) {
-    yield* facetsFor(name)
+    yield* facetsFor(join(from, name))
     return
   }
 
@@ -49,8 +49,8 @@ pathsFor.test?.(({ eq }) => {
 ```
 
 ```mjs
-export async function realPathFor(name) {
-  for (const path of pathsFor(name)) {
+export async function realPathFor(name, from, ...roots) {
+  for (const path of pathsFor(name, from, ...roots)) {
     try {
       await fs.access(path)
       return path
