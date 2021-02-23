@@ -1,5 +1,5 @@
 import { resolve, relative } from "path"
-import { pre } from "./fns.mjs"
+import { pre } from "./fns"
 
 export const root = (...paths) => resolve(process.cwd(), ...paths)
 

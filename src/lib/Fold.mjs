@@ -1,5 +1,5 @@
-import { Enum, iter } from "./Enum.mjs"
-import { edit, current } from "./edit.mjs"
+import { Enum, iter } from "./Enum"
+import { edit, current } from "./edit"
 
 export function make() {
   function self(...inputs) {

@@ -4,10 +4,10 @@ import * as fs from "fs"
 import Esbuild from "esbuild"
 import { copyFile, mkdir, readFile, writeFile, stat } from "fs/promises"
 import { dirname, extname } from "path"
-import * as project from "../lib/project.mjs"
-import { current, exists, isNil, iter } from "../lib.mjs"
-import * as markdown from "./markdown.mjs"
-import * as literate from "./Literate.mjs"
+import * as project from "lib/project"
+import { current, exists, isNil, iter } from "lib"
+import * as markdown from "./markdown"
+import * as literate from "./Literate"
 
 const { COPYFILE_FICLONE } = fs.constants
 

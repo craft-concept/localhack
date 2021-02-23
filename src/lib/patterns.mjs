@@ -1,5 +1,5 @@
-import { makeFn } from "./fns.mjs"
-import { test } from "./Testing.mjs"
+import { makeFn } from "./fns"
+import { test } from "./Testing"
 
 export const T = {
   Any: { __type: "any" },

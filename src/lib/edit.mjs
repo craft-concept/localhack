@@ -1,12 +1,12 @@
-import { test } from "./Testing.mjs"
+import { test } from "./Testing"
 import {
   produce,
   isDraft,
   current as currentIm,
   original as originalIm,
 } from "immer"
-import { T, isObj } from "./reify.mjs"
-import { entries, keys, values } from "./Enum.mjs"
+import { T, isObj } from "./reify"
+import { entries, keys, values } from "./Enum"
 
 /**
  * Returns whether `x` is null or undefined.

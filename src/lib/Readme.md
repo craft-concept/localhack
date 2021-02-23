@@ -1,7 +1,6 @@
 # The Library
 
-"lib" is the Library. Import common exports of the nested modules from
-`lib.mjs`.
+"lib" is the Library. Import common exports of the nested modules from `lib`.
 
 ```mjs
 export {
@@ -12,9 +11,9 @@ export {
   deepAssign,
   current,
   original,
-} from "./lib/edit.mjs"
-export { Enum, iter, entries, keys, values } from "./lib/Enum.mjs"
-export { Future } from "./lib/Future.mjs"
-export { T, isObj } from "./lib/reify.mjs"
-export { test } from "./lib/Testing.mjs"
+} from "lib/edit"
+export { Enum, iter, entries, keys, values } from "lib/Enum"
+export { Future } from "lib/Future"
+export { T, isObj } from "lib/reify"
+export { test } from "lib/Testing"
 ```

@@ -1,6 +1,6 @@
-import { fnWith } from "../lib/fns.mjs"
-import { current, original, deepAssign, keys, entries } from "../lib.mjs"
-import * as memory from "./memory.mjs"
+import { fnWith } from "lib/fns"
+import { current, original, deepAssign, keys, entries } from "lib"
+import * as memory from "./memory"
 
 /**
  * Makes the previous state available. More of a simple plugin example than a

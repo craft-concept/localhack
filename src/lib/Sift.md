@@ -23,9 +23,9 @@ Let's look at the code. We depend on `immer`, our testing lib, and some local
 data-structure helpers.
 
 ```mjs
-import { Enum, iter, iterate } from "./Enum.mjs"
-import { edit, current } from "./edit.mjs"
-import { Future } from "./Future.mjs"
+import { Enum, iter, iterate } from "./Enum"
+import { edit, current } from "./edit"
+import { Future } from "./Future"
 ```
 
 `make` is the small core of all sift instances. First, we create the `self`
