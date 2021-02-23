@@ -13,35 +13,33 @@ sql-labeled code fence blocks.
 
 ```mjs
 function* facetsFor(name) {
-  /** We always resolve to itself first. */
-  if (/\.\w+$/.test(name)) yield name
+  if (/\.m?js$/.test(name)) return name
 
   yield `${name}.mjs`
   yield `${name}/Readme.mjs` // Not actually sure we need this one
   yield `${name}/index.mjs` // Will probably deprecate eventually
 }
 
-import { test } from "lib.mjs"
-test(facetsFor, ({ eq }) => {
+facetsFor.test?.(({ eq }) => {
   eq([...facetsFor("lib/Resolution")], ["lib/Resolution.mjs", "lib/Res"])
 })
 ```
 
 ```mjs
-export const defaultRoots = [process.cwd()]
+export const defaultRoots = [join(process.cwd(), ".localhack/build")]
 
-function* pathsFor(name, from, ...roots) {
+export function* pathsFor(name, from, ...roots) {
   if (isRelative(name)) {
     yield* facetsFor(name)
     return
   }
 
   for (const root of [...roots, ...defaultRoots]) {
-    yield* facetsFor(join(name))
+    yield* facetsFor(join(root, name))
   }
 }
 
-test(pathsFor, ({ eq }) => {
+pathsFor.test?.(({ eq }) => {
   eq([...pathsFor("lib/Resolution")], ["lib/Resolution"])
 })
 ```
@@ -52,7 +50,7 @@ A lazily implemented `join` function.
 
 ```mjs
 function join(...parts) {
-  return parts.join("/").replaceAll(/\/+/g, "/")
+  return parts.join("/").replace(/\/+/g, "/")
 }
 
 function isRelative(path) {
