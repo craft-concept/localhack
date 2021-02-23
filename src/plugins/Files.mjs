@@ -1,6 +1,6 @@
 import fs from "fs/promises"
-import { T, Future } from "../lib.mjs"
-import * as project from "../lib/project.mjs"
+import { T, Future } from "lib"
+import * as project from "lib/project"
 
 export default [
   CacheAsBuffer,

@@ -6,14 +6,14 @@ if (process.version < "v14.11") {
 }
 
 import "lib/Testing"
-import { make } from "../lib/Sift.mjs"
-import { current, iter } from "../lib.mjs"
-import { standard, debugging, trace } from "../plugins/std.mjs"
-import * as build from "../plugins/build.mjs"
-import * as CLI from "../plugins/CLI.mjs"
-import * as Files from "../plugins/Files.mjs"
-import * as Http from "../plugins/Http.mjs"
-import * as project from "../lib/project.mjs"
+import { make } from "lib/Sift"
+import { current, iter } from "lib"
+import { standard, debugging, trace } from "plugins/std"
+import * as build from "plugins/build"
+import * as CLI from "plugins/CLI"
+import * as Files from "plugins/Files"
+import * as Http from "plugins/Http"
+import * as project from "lib/project"
 import electron from "electron"
 import { execFile, spawn } from "child_process"
 

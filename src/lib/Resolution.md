@@ -12,6 +12,10 @@ could also imagine `lib/Resolution.sql` containing all code defined in
 sql-labeled code fence blocks.
 
 ```mjs
+import fs from "fs/promises"
+```
+
+```mjs
 function* facetsFor(name) {
   if (/\.m?js$/.test(name)) return name
 
@@ -42,6 +46,17 @@ export function* pathsFor(name, from, ...roots) {
 pathsFor.test?.(({ eq }) => {
   eq([...pathsFor("lib/Resolution")], ["lib/Resolution"])
 })
+```
+
+```mjs
+export async function realPathFor(name) {
+  for (const path of pathsFor(name)) {
+    try {
+      await fs.access(path)
+      return path
+    } catch (e) {}
+  }
+}
 ```
 
 A lazily implemented `join` function.

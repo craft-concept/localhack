@@ -16,13 +16,8 @@ const root = process.cwd()
 
 ```mjs
 export async function resolve(spec, { conditions, parentURL }, defaultResolve) {
-  for (const path of Res.pathsFor(spec)) {
-    try {
-      await fs.access(path)
-      return defaultResolve(path, { conditions, parentURL }, defaultResolve)
-    } catch (e) {}
-  }
+  const path = (await Res.realPathFor(spec)) || spec
 
-  return defaultResolve(spec, { conditions, parentURL }, defaultResolve)
+  return defaultResolve(path, { conditions, parentURL }, defaultResolve)
 }
 ```

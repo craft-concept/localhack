@@ -1,5 +1,5 @@
 import * as uuid from "uuid"
-import { current, iter, entries, deepAssign } from "../lib.mjs"
+import { current, iter, entries, deepAssign } from "lib"
 
 export function handleFunctionIds(input) {
   if (typeof input.id !== "function") return
