@@ -142,12 +142,12 @@ export class Enum {
     this.iter = fn
   }
 
-  [Symbol.iterator]() {
-    return this.iter()[Symbol.iterator]()
+  *[Symbol.iterator]() {
+    yield* this.iter()
   }
 
   gen(fn) {
-    return Enum.gen(() => fn(this.iter()))
+    return Enum.gen(() => fn(this))
   }
 
   chain(fn) {
@@ -196,7 +196,7 @@ export class Enum {
   }
 
   each(fn) {
-    for (const x of this.iter()) fn(x)
+    for (const x of this) fn(x)
     return this
   }
 
@@ -205,16 +205,16 @@ export class Enum {
   }
 
   get first() {
-    const [x] = this.iter()
+    const [x] = this
     return x
   }
 
   get array() {
-    return (this._array ??= [...this.iter()])
+    return (this._array ??= [...this])
   }
 
   get set() {
-    return (this._set ??= new Set(this.iter()))
+    return (this._set ??= new Set(this))
   }
 }
 
