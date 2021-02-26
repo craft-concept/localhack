@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings --experimental-loader=./.localhack/build/entries/NodeLoader.mjs
+#!/usr/bin/env node --no-warnings --experimental-loader=./.hack/build/entries/NodeLoader.mjs
 
 if (process.version < "v14.11") {
   console.log(`Node ${process.version} is too old. v14.11+ is required.`)

@@ -5,7 +5,7 @@ export const root = (...paths) => resolve(process.cwd(), ...paths)
 
 export const src = pre(root, "src")
 export const entry = pre(src, "entries")
-export const local = pre(root, ".localhack")
+export const local = pre(root, ".hack")
 export const build = pre(local, "build")
 export const dist = pre(root, "dist")
 

@@ -83,7 +83,7 @@ export function transpiling(input, state) {
   if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path)) return
 
   const outputPath = path
-    .replace("/src/", "/.localhack/build/")
+    .replace("/src/", "/.hack/build/")
     .replace(/\/Readme\.(\w+)$/, ".$1")
 
   return async send => {

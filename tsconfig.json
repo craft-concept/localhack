@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "jsx": "react",
     "jsxFactory": "h",
-    "outDir": ".localhack/tsc",
+    "outDir": ".hack/tsc",
     "plugins": [{ "name": "typescript-lit-html-plugin" }]
   },
   "compileOnSave": false,

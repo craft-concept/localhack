@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "publisher": "craft-concept",
   "repository": "https://github.com/craft-concept/localhack/src/vscode",
-  "main": "../../.localhack/build/vscode/extension.js",
+  "main": "../../.hack/build/vscode/extension.js",
   "engines": {
     "vscode": "^1.32.0"
   },
