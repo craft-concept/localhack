@@ -1,4 +1,4 @@
-import { Enum } from "./Enum"
+import { Enum, iter } from "./Enum"
 
 export class ReplySet extends Enum {
   constructor(send) {
@@ -10,7 +10,8 @@ export class ReplySet extends Enum {
 
   add(replies) {
     for (const reply of iter(replies)) {
-      if (typeof reply == "function") this.add(reply(this.send))
+      if (typeof reply == "function" && !reply.plugin)
+        this.add(reply(this.send))
       else if (typeof reply.then == "function")
         reply.then(
           r => this.add(r),

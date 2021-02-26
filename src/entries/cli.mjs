@@ -6,7 +6,7 @@ if (process.version < "v14.11") {
 }
 
 import "lib/Testing"
-import { make } from "lib/Sift"
+import { Fold } from "lib/Fold"
 import { current, iter } from "lib"
 import { standard, debugging, trace } from "plugins/std"
 import * as build from "plugins/build"
@@ -19,7 +19,7 @@ import { execFile, spawn } from "child_process"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
-const send = make()
+const send = Fold()
 
 send(
   // Plugins
