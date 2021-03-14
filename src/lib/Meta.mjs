@@ -27,3 +27,39 @@ export function properties(obj) {
   delete props.constructor
   return props
 }
+
+export const Generator = function* () {}.prototype
+export const AsyncGenerator = async function* () {}.prototype
+
+export const GeneratorFunction = Generator.constructor
+export const AsyncGeneratorFunction = AsyncGenerator.constructor
+export const AsyncFunction = async function () {}.constructor
+
+export function isAsyncFunction(fn) {
+  return typeof fn == "function" && fn instanceof AsyncFunction
+}
+
+export function isGeneratorFunction(fn) {
+  return typeof fn == "function" && fn instanceof GeneratorFunction
+}
+
+export function isAsyncGeneratorFunction(fn) {
+  return typeof fn == "function" && fn instanceof AsyncGeneratorFunction
+}
+
+export function isArrowFunction(fn) {
+  return typeof fn == "function" && fn.constructor === Function && !fn.prototype
+}
+
+export function isPlainFunction(fn) {
+  return (
+    typeof fn == "function" && fn.constructor === Function && !!fn.prototype
+  )
+}
+
+isAsyncFunction.test(({ truthy, falsy }) => {
+  falsy(isAsyncFunction(function () {}))
+  falsy(isAsyncFunction(() => {}))
+  truthy(isAsyncFunction(async function () {}))
+  truthy(isAsyncFunction(async () => {}))
+})
