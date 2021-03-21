@@ -24,7 +24,7 @@ export function Fold(state = {}) {
     if (typeof input == "function") {
       input.key ??= input.name || "anon"
       input.plugin = true
-      state.plugins.push(input)
+      if (!state.plugins.includes(input)) state.plugins.push(input)
     }
 
     for (const plugin of state.plugins) {

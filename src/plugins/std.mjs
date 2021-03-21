@@ -39,4 +39,4 @@ export const trace = key =>
 export const standard = [memory.default, config, alias]
 
 /** Set of plugins for debugging. */
-export const debugging = []
+export const debugging = [logInputs]

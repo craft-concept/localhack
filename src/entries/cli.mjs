@@ -5,24 +5,27 @@ if (process.version < "v14.11") {
   process.exit(1)
 }
 
+import electron from "electron"
+import { execFile, spawn } from "child_process"
+import Yaml from "yaml"
+
 import "lib/Testing"
-import { Fold } from "lib/Fold"
 import { current, iter } from "lib"
+import { Fold } from "lib/Fold"
 import { standard, debugging, trace } from "plugins/std"
 import * as build from "plugins/build"
 import * as CLI from "plugins/CLI"
 import * as Files from "plugins/Files"
 import * as Http from "plugins/Http"
 import * as project from "lib/project"
-import electron from "electron"
-import { execFile, spawn } from "child_process"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
-const send = Fold()
+const self = Fold()
 
-send(
+self(
   // Plugins
+  debugging,
   standard,
   // Http.default,
   Files.default,
@@ -30,11 +33,10 @@ send(
   cli,
 )
 
-send({
-  cwd,
-  cmd,
-  args,
-})
+for (const reply of self({ cwd, cmd, args })) {
+  console.log("---")
+  console.log(Yaml.stringify(reply))
+}
 
 function cli(input, state) {
   if (!("cmd" in input)) return
