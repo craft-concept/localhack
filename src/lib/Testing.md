@@ -50,7 +50,7 @@ The function you're most likely here for. Example usage:
 `test(someFunction, ({ eq }) => { eq(someFunction(), expectedOutput) })`
 
 ```mjs
-export function test(subject, fn) {
+export async function test(subject, fn) {
   if (process.env.NODE_ENV !== "test") return
   const filename = callingFilename()
 
@@ -61,7 +61,7 @@ export function test(subject, fn) {
 
   log(`  ${chalk.yellow(subject.name || subject)}: `)
   try {
-    fn({ eq, throws, truthy, falsy })
+    await fn({ eq, throws, truthy, falsy })
     log("\n")
   } catch (err) {
     log(chalk.red("✗"))

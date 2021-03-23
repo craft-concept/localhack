@@ -99,7 +99,7 @@ function testCmd(input) {
   if (input !== testCmd) return
 
   for (const arg of iter(args)) {
-    import(project.build(arg))
+    import(project.build(arg)).catch(console.error)
   }
 }
 

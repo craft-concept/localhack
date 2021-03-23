@@ -8,21 +8,36 @@ import md from "@textlint/markdown-to-ast"
 export function parse(node) {
   const { ext, text } = node
 
-  if (!text) return
+  if (typeof text != "string") return
   if (ext != ".md") return
 
   node.markdown = md.parse(text, {})
 }
 
 export function explore(node, recur) {
-  if (Array.isArray(node.markdown)) {
-    node.children = node.markdown.map(recur)
-  }
-
-  if (typeof node.markdown == "object") recur(node.markdown)
+  if (typeof node.markdown == "object") return recur(node.markdown)
 }
-```
 
-```mjs
-transform.test?.(({ eq }) => {})
+export function* render(node, recur) {
+  if (typeof node.type != "string") return
+  console.log(node)
+
+  switch (node.type) {
+    case "Document":
+      return recur(node.children)
+
+    case "Header":
+      yield node.raw
+      return "\n"
+
+    case "Paragraph":
+      yield node.value
+      return "\n"
+
+    case "Emphasis":
+      yield "*"
+      yield* recur(node.children)
+      return "*"
+  }
+}
 ```

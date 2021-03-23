@@ -5,17 +5,19 @@
 - List
 
 ```mjs
-import { source } from "./MarkdownTest.md"
+import { readFile } from "fs/promises"
+import * as Project from "lib/Project"
 import { Transmute } from "lib/Transmute"
 import * as Markdown from "./Markdown"
 
-transform.test?.(async ({ eq }) => {
-  const inst = new Transmute([Markdown.parse])
+function MarkdownTest() {}
 
-  const output = [
-    ...inst.transform({
-      text: source,
-    }),
-  ]
+MarkdownTest.test?.(async ({ eq }) => {
+  const tm = new Transmute([Markdown.parse, Markdown.explore, Markdown.render])
+  const tx = n => tm.transform(n).join()
+
+  const text = String(await readFile(Project.src("transforms/MarkdownTest.md")))
+
+  eq(tx({ ext: ".md", text }), text)
 })
 ```
