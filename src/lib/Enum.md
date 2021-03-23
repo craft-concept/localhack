@@ -204,6 +204,10 @@ export class Enum {
     return this.each(fn)
   }
 
+  join(sep = "") {
+    return this.array.join(sep)
+  }
+
   get first() {
     const [x] = this
     return x
@@ -253,6 +257,10 @@ Enum.test?.(({ eq }) => {
 
   eq(en.set, new Set([1, 2, 3]))
   eq(en2.set, new Set([1, 2, 3]))
+
+  en.join.test(() => {
+    eq(en.join(), "123")
+  })
 
   en.select.test(() => {
     const isOdd = x => x % 2

@@ -25,7 +25,7 @@ const self = Fold()
 
 self(
   // Plugins
-  debugging,
+  // debugging,
   standard,
   // Http.default,
   Files.default,

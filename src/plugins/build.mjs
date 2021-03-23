@@ -35,7 +35,7 @@ export function bundling(input, state) {
         "esbuild",
         "fast-glob",
         "immer",
-        "markdown-it",
+        "@textlint/markdown-to-ast",
         "react",
         "uuid",
         "vscode",
@@ -75,12 +75,4 @@ export const indexers = {
   byPath: input => input.path,
 }
 
-export const all = [
-  { indexers },
-  globbing,
-  writing,
-  reading,
-  transpiling,
-  markdown.all,
-  literate.all,
-]
+export const all = [{ indexers }, markdown.all, literate.all]
