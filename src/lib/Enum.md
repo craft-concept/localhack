@@ -7,7 +7,7 @@ iterated. We iterate over the values of Maps.
 export function* iter(x) {
   if (x == null) return
   if (x instanceof Map) x = x.values()
-  if (typeof x === "object" && Symbol.iterator in x) {
+  if (typeof x == "object" && Symbol.iterator in x) {
     for (const xa of x) yield* iter(xa)
   } else {
     yield x
@@ -195,6 +195,27 @@ export class Enum {
     })
   }
 
+  between(value) {
+    return this.gen(function* betweenMapped(xs) {
+      let first = true
+      for (const x of xs)
+        if (first) {
+          yield x
+          first = false
+        } else {
+          yield value
+          yield x
+        }
+    })
+  }
+
+  /**
+   * Todo: Duplicates work
+   */
+  partition(fn) {
+    return [this.select(fn), this.reject(fn)]
+  }
+
   each(fn) {
     for (const x of this) fn(x)
     return this
@@ -260,6 +281,10 @@ Enum.test?.(({ eq }) => {
 
   en.join.test(() => {
     eq(en.join(), "123")
+  })
+
+  en.between.test(() => {
+    eq(en.between(0).array, [1, 0, 2, 0, 3])
   })
 
   en.select.test(() => {

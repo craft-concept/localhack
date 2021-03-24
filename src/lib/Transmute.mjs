@@ -5,20 +5,21 @@ export class Transmute {
     this.plugins = plugins
   }
 
-  transform(node, ctx = {}) {
-    return Enum.of(this.walk(ctx, node))
+  transform(input, ctx = {}) {
+    return Enum.of(this.walk(ctx, input))
   }
 
-  *walk(parentCtx, input) {
+  *walk(parentCtx, input, addCtx = {}) {
     if (input == null) return
 
-    const ctx = Object.create(parentCtx)
+    const ctx = Object.assign(Object.create(parentCtx), addCtx)
     const recur = this.walk.bind(this, ctx)
 
     for (const node of iter(input)) {
       // Mutate the current node
       for (const plugin of this.plugins) {
-        yield* iter(plugin?.call(ctx, node, recur))
+        // console.log("walking with", plugin.name, node)
+        yield* iter(plugin.call(ctx, node, recur))
       }
     }
   }
