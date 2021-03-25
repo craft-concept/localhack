@@ -8,9 +8,11 @@ export function* iter(x) {
   if (x == null) return
   if (x instanceof Map) x = x.values()
   if (typeof x == "object" && Symbol.iterator in x) {
-    for (const xa of x) yield* iter(xa)
+    let returns = []
+    for (const xa of x) returns.push(yield* iter(xa))
+    return returns
   } else {
-    yield x
+    return [yield x]
   }
 }
 
