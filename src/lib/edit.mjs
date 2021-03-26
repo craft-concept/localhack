@@ -64,6 +64,18 @@ export const isOriginal = input => !isModified(input)
 export const current = input => (isDraft(input) ? currentIm(input) : input)
 export const original = input => (isDraft(input) ? originalIm(input) : input)
 
+test(isModified, ({ eq }) => {
+  produce({ test: { a: 1 } }, obj => {
+    eq(isModified(obj), false)
+    eq(isModified(obj.test), false)
+
+    obj.test.a = 2
+
+    eq(isModified(obj), true)
+    eq(isModified(obj.test), true)
+  })
+})
+
 export function deepAssign(target, ...sources) {
   for (const source of sources)
     for (const k of keys(source))
@@ -81,14 +93,6 @@ test(deepAssign, ({ eq }) => {
   eq(deepAssign({ a: 1, c: 3 }, source), { a: { b: 2 }, c: 3 })
 })
 
-test(isModified, ({ eq }) => {
-  produce({ test: { a: 1 } }, obj => {
-    eq(isModified(obj), false)
-    eq(isModified(obj.test), false)
-
-    obj.test.a = 2
-
-    eq(isModified(obj), true)
-    eq(isModified(obj.test), true)
-  })
-})
+export function createWith(parent, ...assigns) {
+  return Object.assign(Object.create(parent), ...assigns)
+}

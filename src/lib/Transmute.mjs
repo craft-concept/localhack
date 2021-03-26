@@ -1,50 +1,60 @@
 import { Enum, iter } from "lib/Enum"
+import { createWith } from "lib/edit"
 
 export class Transmute {
-  constructor(plugins = [], state = {}) {
+  constructor(plugins, root) {
     this.plugins = plugins
-    this.state = state
+    this.root = root
   }
 
-  transform(input) {
-    return Enum.of(this.walk(this.state, input))
+  send(msg) {
+    return this.transform({ sent: msg })
+  }
+
+  transform(ctx = {}) {
+    return Enum.of(this.walk(ctx, this.root))
   }
 
   /**
    * Walk a level down
    */
-  walkDown(parentCtx, input, addCtx = {}) {
-    if (input == null) return
+  walkDown(parentCtx, nodes, addCtx = {}) {
+    if (nodes == null) return
 
-    const ctx = Object.assign(Object.create(parentCtx), addCtx)
+    const ctx = createWith(parentCtx, addCtx)
 
-    return this.walk(ctx, input)
+    return this.walk(ctx, nodes)
   }
 
-  *walk(ctx, input) {
-    if (input == null) return
+  *walk(ctx, nodes) {
+    if (nodes == null) return
 
     const recur = this.walkDown.bind(this, ctx)
-    const asyncFns = []
+    const returns = []
 
-    for (const node of iter(input)) {
+    for (const node of iter(nodes)) {
       // Mutate the current node
       for (const plugin of this.plugins) {
         // console.log("walking with", plugin.name, node)
-        const returns = yield* iter(plugin.call(ctx, node, recur))
-        asyncFns.push(returns)
+        returns.push(yield* iter(plugin.call(node, ctx, recur)))
       }
     }
 
-    const send = this.transform.bind(this)
+    const send = this.send.bind(this)
 
-    for (const fn of iter(asyncFns)) fn(send)
+    const values = []
+    for (const fn of iter(returns)) {
+      if (typeof fn === "function") fn(send)
+      else values.push(fn)
+    }
+
+    return values
   }
 }
 
 Transmute.test?.(({ eq }) => {
-  const tm = new Transmute([Emphasis, Button, AsciiTags, AsciiText])
-  const tx = n => tm.transform(n).join()
+  const plugins = [Emphasis, Button, AsciiTags, AsciiText]
+  const tx = root => new Transmute(plugins, root).transform().join()
 
   eq(tx({ Button: true, children: "Hello" }), "[Hello]")
   eq(
@@ -55,21 +65,22 @@ Transmute.test?.(({ eq }) => {
     "[_Hello_ there]",
   )
 
-  function Button(node) {
-    if (!node.Button) return
+  function Button() {
+    if (!this.Button) return
 
-    node.open = "["
-    node.close = "]"
+    this.open = "["
+    this.close = "]"
   }
 
-  function Emphasis(node) {
-    if (!node.Emphasis) return
+  function Emphasis() {
+    if (!this.Emphasis) return
 
-    node.open = "_"
-    node.close = "_"
+    this.open = "_"
+    this.close = "_"
   }
 
-  function* AsciiTags({ open, close, children }, recur) {
+  function* AsciiTags(_, recur) {
+    const { open, close, children } = this
     if (!open || !close) return
 
     yield open
@@ -77,7 +88,7 @@ Transmute.test?.(({ eq }) => {
     yield close
   }
 
-  function AsciiText(node) {
-    if (typeof node == "string") return node
+  function AsciiText() {
+    if (typeof this == "string") return this
   }
 })

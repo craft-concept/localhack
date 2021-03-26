@@ -21,13 +21,13 @@ import * as Markdown from "./Markdown"
 function MarkdownTest() {}
 
 MarkdownTest.test?.(async ({ eq }) => {
-  const tm = new Transmute([
+  const plugins = [
     Markdown.parse,
     Markdown.transform,
     Markdown.explore,
     Markdown.render,
-  ])
-  const tx = n => tm.transform(n).join()
+  ]
+  const tx = root => new Transmute(plugins, root).transform().join()
 
   const text = String(await readFile(Project.src("transforms/MarkdownTest.md")))
 

@@ -5,104 +5,104 @@
 ````mjs
 import md from "@textlint/markdown-to-ast"
 
-export function parse(node) {
-  const { ext, text } = node
+export function parse() {
+  const { ext, text } = this
 
   if (typeof text != "string") return
   if (ext != ".md") return
 
-  node.markdown = md.parse(text, {})
+  this.markdown = md.parse(text, {})
 }
 
-export function transform(node) {
-  if (!this.isMarkdown) return
+export function transform({ isMarkdown }) {
+  if (!isMarkdown) return
 
-  switch (node.type) {
+  switch (this.type) {
     case "Heading":
     case "Paragraph":
     case "List":
     case "BlockQuote":
     case "CodeBlock":
-      node.isBlock = true
+      this.isBlock = true
       break
     default:
-      node.isBlock = false
+      this.isBlock = false
   }
 }
 
-export function explore({ markdown }, recur) {
-  if (typeof markdown != "object") return
+export function explore(_, recur) {
+  if (typeof this.markdown != "object") return
 
-  return recur(markdown, { isMarkdown: true })
+  return recur(this.markdown, { isMarkdown: true })
 }
 
-export function* render(node, recur) {
-  if (!this.isMarkdown) return
-  if (typeof node.type != "string") return
+export function* render(ctx, recur) {
+  if (!ctx.isMarkdown) return
+  if (typeof this.type != "string") return
 
-  if (node.isBlock && this.blockCount != 0 && !this.nested) yield "\n"
+  if (this.isBlock && ctx.blockCount != 0 && !ctx.nested) yield "\n"
 
-  switch (node.type) {
+  switch (this.type) {
     case "Document":
-      yield* recur(node.children, { blockIndex: 0 })
+      yield* recur(this.children, { blockIndex: 0 })
       break
 
     case "Str":
-      yield node.value
+      yield this.value
       break
 
     case "Header":
-      yield "#".repeat(node.depth)
+      yield "#".repeat(this.depth)
       yield " "
-      yield* recur(node.children, { nested: true })
+      yield* recur(this.children, { nested: true })
       yield "\n"
       break
 
     case "Paragraph":
-      yield* recur(node.children, { nested: true })
-      if (!this.nested) yield "\n"
+      yield* recur(this.children, { nested: true })
+      if (!ctx.nested) yield "\n"
       break
 
     case "List":
-      this.ordered = node.ordered
-      yield* recur(node.children)
+      ctx.ordered = this.ordered
+      yield* recur(this.children)
       break
 
     case "ListItem":
-      this.numeral ??= 0
-      this.numeral += 1
-      yield this.ordered ? `${this.numeral}. ` : "- "
-      yield* recur(node.children, { nested: true })
+      ctx.numeral ??= 0
+      ctx.numeral += 1
+      yield ctx.ordered ? `${ctx.numeral}. ` : "- "
+      yield* recur(this.children, { nested: true })
       yield "\n"
       break
 
     case "BlockQuote":
       yield "> "
-      yield* recur(node.children, { nested: true })
+      yield* recur(this.children, { nested: true })
       yield "\n"
       break
 
     case "CodeBlock":
       yield "```"
-      yield node.lang
+      yield this.lang
       yield "\n"
-      yield node.value
+      yield this.value
       yield "\n```\n"
       break
 
     case "Emphasis":
       yield "_"
-      yield* recur(node.children)
+      yield* recur(this.children)
       yield "_"
       break
 
     case "Strong":
       yield "**"
-      yield* recur(node.children)
+      yield* recur(this.children)
       yield "**"
       break
   }
 
-  if (this.blockIndex != null) this.blockIndex += 1
+  if (ctx.blockIndex != null) ctx.blockIndex += 1
 }
 ````
