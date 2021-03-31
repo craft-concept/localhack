@@ -4,7 +4,7 @@ export const loaders = {
   ".ohm": "text",
 }
 
-export function TranspilingJs({ name, source, compiled }) {
+export async function* TranspilingJs({ name, source, compiled }) {
   if (typeof name != "string") return
   if (typeof source != "string") return
   if (compiled != String) return
@@ -15,20 +15,16 @@ export function TranspilingJs({ name, source, compiled }) {
   //   .replace("/src/", "/.hack/build/")
   //   .replace(/\/Readme\.(\w+)$/, ".$1")
 
-  return async send => {
-    const { code } = await Esbuild.transform(text, {
-      sourcefile: name,
-      target: "node12",
-      loader: loaders[extname(path)],
-      // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
-      format: "esm",
-    })
+  const { code } = await Esbuild.transform(text, {
+    sourcefile: name,
+    target: "node12",
+    loader: loaders[extname(path)],
+    // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
+    format: "esm",
+  })
 
-    send({
-      name,
-      source,
-      compiled: code,
-    })
+  yield {
+    compiled: code,
   }
 }
 

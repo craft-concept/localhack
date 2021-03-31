@@ -5,6 +5,8 @@
 ````mjs
 import md from "@textlint/markdown-to-ast"
 
+export default [parse, transform, explore, render]
+
 export function parse() {
   const { ext, text } = this
 
@@ -38,6 +40,7 @@ export function explore(_, recur) {
 
 export function* render(ctx, recur) {
   if (!ctx.isMarkdown) return
+  if (ctx.markdown != String) return
   if (typeof this.type != "string") return
 
   if (this.isBlock && ctx.blockCount != 0 && !ctx.nested) yield "\n"

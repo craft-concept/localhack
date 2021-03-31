@@ -1,23 +1,24 @@
 import { Enum, iter } from "lib/Enum"
 import { createWith } from "lib/edit"
 
-export class Transmute {
-  constructor(root, plugins = []) {
-    this.plugins = Enum.of(plugins).array
-    this.root = root
+export class Lift {
+  constructor(state = {}, plugins = []) {
+    this.state = state
+    this.plugins = [...iter(plugins)]
+    this.send = this.send.bind(this)
   }
 
   use(...plugins) {
-    this.plugins.push(...Enum.of(plugins))
+    this.plugins.push(...iter(plugins))
     return this
   }
 
   send(msg) {
-    return this.transform(msg)
+    return this.transform(msg, { sent: true })
   }
 
-  transform(ctx = {}) {
-    return Enum.of(this.walk(ctx, this.root))
+  transform(root, ctx = {}) {
+    return Enum.of(this.walk(ctx, root))
   }
 
   /**
@@ -41,7 +42,7 @@ export class Transmute {
       // Mutate the current node
       for (const plugin of this.plugins) {
         // console.log("walking with", plugin.name, node)
-        returns.push(yield* iter(plugin.call(node, ctx, recur)))
+        returns.push(yield* iter(plugin.call(this.state, node, ctx, recur)))
       }
     }
 
@@ -57,9 +58,10 @@ export class Transmute {
   }
 }
 
-Transmute.test?.(({ eq }) => {
+Lift.test?.(({ eq }) => {
   const plugins = [Emphasis, Button, AsciiTags, AsciiText]
-  const tx = root => new Transmute(root, plugins).transform().join()
+  const self = new Lift({}, plugins)
+  const tx = root => self.transform(root).join()
 
   eq(tx({ Button: true, children: "Hello" }), "[Hello]")
   eq(
@@ -70,22 +72,21 @@ Transmute.test?.(({ eq }) => {
     "[_Hello_ there]",
   )
 
-  function Button() {
-    if (!this.Button) return
+  function Button(node) {
+    if (!node.Button) return
 
-    this.open = "["
-    this.close = "]"
+    node.open = "["
+    node.close = "]"
   }
 
-  function Emphasis() {
-    if (!this.Emphasis) return
+  function Emphasis(node) {
+    if (!node.Emphasis) return
 
-    this.open = "_"
-    this.close = "_"
+    node.open = "_"
+    node.close = "_"
   }
 
-  function* AsciiTags(_, recur) {
-    const { open, close, children } = this
+  function* AsciiTags({ open, close, children }, _, recur) {
     if (!open || !close) return
 
     yield open
@@ -93,7 +94,7 @@ Transmute.test?.(({ eq }) => {
     yield close
   }
 
-  function AsciiText() {
-    if (typeof this == "string") return this
+  function* AsciiText(node) {
+    if (typeof node == "string") yield node
   }
 })
