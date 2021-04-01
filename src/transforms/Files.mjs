@@ -1,89 +1,77 @@
-import fs from "fs"
-import fp from "fs/promises"
+import fs from "fs/promises"
 import fg from "fast-glob"
 import { dirname, extname } from "path"
 
 import { T, Future } from "lib"
-import Time from "lib/Time"
-import * as Project from "lib/Project"
+import * as Project from "lib/project"
 
-export default [read, write, manage, explore, render]
+export default [
+  BufferCaching,
+  BufferReading,
+  TextBuffering,
+  BufferWriting,
+  TextWriting,
+  PathGlobbing,
+]
 
-export function* explore({ path, text, readAt }, recur) {
-  if (typeof this.files != "object") return
+export function BufferCaching(_, _, state) {
+  const { path, buffer } = this
   if (typeof path != "string") return
 
-  this.files[path] ??= { path }
-
-  for (const file of Object.values(this.files)) yield* recur(file)
+  if (buffer instanceof Buffer) state[path] = buffer
+  if (state[path] && buffer == Buffer) return { path, buffer: state[path] }
 }
 
-export function manage({}) {
-  if (text == String) {
-  }
+export async function* BufferReading() {
+  const { path, buffer } = this
+  if (typeof path != "string") return
+  if (buffer != Buffer) return
 
-  if (typeof text == "string") {
-    file.text = text
-    file.readAt = Time.now
-  }
+  yield { path, buffer: await fs.readFile(Project.root(path)) }
 }
 
-export async function* read({ read }) {
-  if (!read) return
-  if (typeof this.path != "string") return
-
-  yield* fs.createReadStream(Project.root(this.path))
-}
-
-export async function* write({ write }) {
-  if (!write) return
-  if (typeof this.path != "string") return
-
-  yield* fs.createReadStream(Project.root(this.path))
-}
-
-export function TextBuffering({ path, text }) {
+export function* TextBuffering(_, recur) {
+  const { path, text } = this
   if (typeof path != "string") return
   if (text != String) return
 
-  return send =>
-    send({ path, buffer: Buffer }).edit(reply => {
-      reply.text = String(reply.buffer)
-    })
+  yield* recur({ path, buffer: Buffer }).edit(reply => {
+    reply.text = String(reply.buffer)
+  })
 }
 
-export function BufferWriting({ path, buffer, mode, writtenAt }) {
+export async function* BufferWriting() {
+  const { path, buffer, mode, writtenAt } = this
   if (writtenAt != Date) return
   if (typeof path != "string") return
   if (!(buffer instanceof Buffer)) return
 
   mode ??= buffer.slice(0, 2).toString() == "#!" ? 0o755 : 0o644
 
-  return async () => {
-    await fs.mkdir(dirname(path), { recursive: true })
-    await fs.writeFile(path, buffer, { mode })
-    return { path, mode, writtenAt: new Date() }
-  }
+  await fs.mkdir(dirname(path), { recursive: true })
+  await fs.writeFile(path, buffer, { mode })
+
+  yield { path, mode, writtenAt: new Date() }
 }
 
-export function TextWriting({ path, text, writtenAt }) {
+export function TextWriting(_, recur) {
+  const { path, text, writtenAt } = this
+
   if (writtenAt != Date) return
   if (typeof path != "string") return
   if (typeof text != "string") return
 
-  return send => send({ path, writtenAt, buffer: Buffer.from(text) })
+  return recur({ path, writtenAt, buffer: Buffer.from(text) })
 }
 
-export function PathGlobbing({ glob, path }) {
+export async function* PathGlobbing({ glob, path }, recur) {
   if (typeof glob != "string") return
   if (path != String) return
 
-  return async function* (send) {
-    const paths = fg.stream(Project.root(globs), {
-      dot: true,
-      absolute: true,
-    })
+  const paths = fg.stream(Project.root(globs), {
+    dot: true,
+    absolute: true,
+  })
 
-    for await (const path of paths) yield { glob, path }
-  }
+  for await (const path of paths) yield { path }
 }

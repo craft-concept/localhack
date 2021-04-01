@@ -2,10 +2,14 @@ import { Enum, iter } from "lib/Enum"
 import { createWith } from "lib/edit"
 
 export class Lift {
-  constructor(state = {}, plugins = []) {
+  constructor(state = {}) {
     this.state = state
-    this.plugins = [...iter(plugins)]
     this.send = this.send.bind(this)
+  }
+
+  set(state) {
+    this.state = state
+    return this
   }
 
   use(...plugins) {
@@ -14,39 +18,26 @@ export class Lift {
   }
 
   send(msg) {
-    return this.transform(msg, { sent: true })
+    return this.transform(msg)
   }
 
-  transform(root, ctx = {}) {
-    return Enum.of(this.walk(ctx, root))
+  transform(root) {
+    return Enum.of(this.walk(root))
   }
 
-  /**
-   * Walk a level down
-   */
-  walkDown(parentCtx, nodes, addCtx = {}) {
+  *walk(nodes) {
     if (nodes == null) return
 
-    const ctx = createWith(parentCtx, addCtx)
-
-    return this.walk(ctx, nodes)
-  }
-
-  *walk(ctx, nodes) {
-    if (nodes == null) return
-
-    const recur = this.walkDown.bind(this, ctx)
+    const recur = this.send
     const returns = []
 
     for (const node of iter(nodes)) {
       // Mutate the current node
       for (const plugin of this.plugins) {
         // console.log("walking with", plugin.name, node)
-        returns.push(yield* iter(plugin.call(this.state, node, ctx, recur)))
+        returns.push(yield* iter(plugin.call(node, recur, this.state)))
       }
     }
-
-    const send = this.send.bind(this)
 
     const values = []
     for (const fn of iter(returns)) {
@@ -60,7 +51,7 @@ export class Lift {
 
 Lift.test?.(({ eq }) => {
   const plugins = [Emphasis, Button, AsciiTags, AsciiText]
-  const self = new Lift({}, plugins)
+  const self = new Lift().use(plugins)
   const tx = root => self.transform(root).join()
 
   eq(tx({ Button: true, children: "Hello" }), "[Hello]")
@@ -72,21 +63,22 @@ Lift.test?.(({ eq }) => {
     "[_Hello_ there]",
   )
 
-  function Button(node) {
-    if (!node.Button) return
+  function Button() {
+    if (!this.Button) return
 
-    node.open = "["
-    node.close = "]"
+    this.open = "["
+    this.close = "]"
   }
 
-  function Emphasis(node) {
-    if (!node.Emphasis) return
+  function Emphasis() {
+    if (!this.Emphasis) return
 
-    node.open = "_"
-    node.close = "_"
+    this.open = "_"
+    this.close = "_"
   }
 
-  function* AsciiTags({ open, close, children }, _, recur) {
+  function* AsciiTags(recur) {
+    const { open, close, children } = this
     if (!open || !close) return
 
     yield open
@@ -94,7 +86,7 @@ Lift.test?.(({ eq }) => {
     yield close
   }
 
-  function* AsciiText(node) {
-    if (typeof node == "string") yield node
+  function* AsciiText() {
+    if (typeof this == "string") yield this
   }
 })

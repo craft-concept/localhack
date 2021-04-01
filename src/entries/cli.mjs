@@ -10,57 +10,45 @@ import { execFile, spawn } from "child_process"
 import Yaml from "yaml"
 
 import "lib/Testing"
-import { current, iter } from "lib"
-import { Fold } from "lib/Fold"
-import { standard, debugging, trace } from "plugins/std"
-import * as build from "plugins/build"
-import * as CLI from "plugins/CLI"
-import * as Files from "plugins/Files"
-import * as Http from "plugins/Http"
+import { iter } from "lib"
 import * as project from "lib/project"
+
+import { Lift } from "lib/Lift"
+import Cli from "transforms/Cli"
+import Build from "transforms/Build"
+import Markdown from "transforms/Markdown"
 
 const cwd = process.cwd()
 const [node, bin, cmd, ...args] = process.argv
-const self = Fold()
 
-self(
-  // Plugins
-  // debugging,
-  standard,
-  // Http.default,
-  Files.default,
-  CLI.all,
-  cli,
-)
+const self = new Lift().use(Build, Markdown)
 
-for (const reply of self({ cwd, cmd, args })) {
+for (const reply of self.send({ cwd, cmd, args })) {
   console.log("---")
   console.log(Yaml.stringify(reply))
 }
 
-function cli(input, state) {
-  if (!("cmd" in input)) return
-  state.cwd = input.cwd
-  state.cmd = input.cmd
-  state.args = current(input.args)
+function cli(this, _, recur, state) {
+  if (!("cmd" in this)) return
+  state.cwd = this.cwd
+  state.cmd = this.cmd
+  state.args = current(this.args)
 
-  return send => {
-    if (state.flags.debug) send(trace(state.flags.debug))
+  if (state.flags.debug) send(trace(state.flags.debug))
 
-    switch (input.cmd) {
-      case undefined:
-        return send(usageCmd)
-      case "build":
-        return send(buildCmd)
-      case "dist":
-        return send(distCmd)
-      case "test":
-        return send(testCmd)
-      case "watch":
-        return send(buildCmd, watchCmd)
-      case "ui":
-        return send(buildCmd, watchCmd, uiCmd)
-    }
+  switch (this.cmd) {
+    case undefined:
+      return recur(usageCmd)
+    case "build":
+      return recur(buildCmd)
+    case "dist":
+      return recur(distCmd)
+    case "test":
+      return recur(testCmd)
+    case "watch":
+      return recur(buildCmd, watchCmd)
+    case "ui":
+      return recur(buildCmd, watchCmd, uiCmd)
   }
 }
 

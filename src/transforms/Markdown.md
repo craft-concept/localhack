@@ -5,21 +5,23 @@
 ````mjs
 import md from "@textlint/markdown-to-ast"
 
-export default [parse, transform, explore, render]
+export default [parse, explore, markBlocks, render]
 
-export function parse() {
-  const { ext, text } = this
+export function parse(recur) {
+  if (typeof this.text != "string") return
+  if (this.ext != ".md") return
 
-  if (typeof text != "string") return
-  if (ext != ".md") return
-
-  this.markdown = md.parse(text, {})
+  const markdown = md.parse(this.text)
+  return recur({ markdown })
 }
 
-export function transform({ isMarkdown }) {
-  if (!isMarkdown) return
+export function explore() {}
 
-  switch (this.type) {
+export function markBlocks() {
+  const { markdown } = this
+  if (!markdown) return
+
+  switch (markdown.type) {
     case "Heading":
     case "Paragraph":
     case "List":
@@ -32,13 +34,7 @@ export function transform({ isMarkdown }) {
   }
 }
 
-export function explore(_, recur) {
-  if (typeof this.markdown != "object") return
-
-  return recur(this.markdown, { isMarkdown: true })
-}
-
-export function* render(ctx, recur) {
+export function* render(recur) {
   if (!ctx.isMarkdown) return
   if (ctx.markdown != String) return
   if (typeof this.type != "string") return
@@ -47,7 +43,8 @@ export function* render(ctx, recur) {
 
   switch (this.type) {
     case "Document":
-      yield* recur(this.children, { blockIndex: 0 })
+      for (const child of this.children)
+        yield* recur({ markdown: child, blockIndex: 0 })
       break
 
     case "Str":

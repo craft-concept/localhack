@@ -15,14 +15,15 @@ A test markdown file. With _emphasis_ and **strong**.
 ```mjs
 import { readFile } from "fs/promises"
 import * as Project from "lib/Project"
-import { Transmute } from "lib/Transmute"
+import { Lift } from "lib/Lift"
 import Markdown from "./Markdown"
 
 function MarkdownTest() {}
 
 MarkdownTest.test?.(async ({ eq }) => {
   const plugins = [Markdown]
-  const tx = root => new Transmute(root, plugins).transform().join()
+  const lift = new Lift().use(plugins)
+  const tx = root => lift.transform(root).join()
 
   const text = String(await readFile(Project.src("transforms/MarkdownTest.md")))
 

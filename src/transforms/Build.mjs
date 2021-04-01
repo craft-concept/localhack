@@ -1,8 +1,5 @@
 import * as Project from "lib/Project"
+import JsCompilation from "./JsCompilation"
+import Files from "./Files"
 
-export async function build() {
-  // test({ watch: true }, "lib/Transform.mjs")
-
-  for await (const path of Project.glob("lib/*.mjs")) {
-  }
-}
+export default [JsCompilation, Files]
