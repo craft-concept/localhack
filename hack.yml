@@ -1,0 +1,8 @@
+# example: lib/Enum -> .hack/build/lib/Enum.mjs
+paths:
+  - "%.mjs"
+  - .hack/%
+  - .hack/build/%
+  - src/%
+  - node_modules/%
+  - "@core/%"
