@@ -5,6 +5,7 @@ if (process.version < "v14.11") {
   process.exit(1)
 }
 
+import "lib/Testing"
 import commander from "commander"
 import electron from "electron"
 import { execFile, spawn } from "child_process"
@@ -12,10 +13,7 @@ import Yaml from "yaml"
 
 import "cmd/http"
 import "cmd/to"
-
-import "lib/Testing"
-import { iter } from "lib"
-import * as project from "lib/project"
+import "cmd/test"
 
 import { Lift } from "lib/Lift"
 import Cli from "transforms/Cli"

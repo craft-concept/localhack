@@ -9,6 +9,8 @@ import chalk from "chalk"
 
 export const dot = chalk.green("✓")
 
+export const cases = []
+
 export const log = x => process.stdout.write(x)
 export const eq = (actual, expected, message) => {
   strict.deepEqual(actual, expected, message)
@@ -40,21 +42,28 @@ export const throws = (err, fn) => {
 }
 ```
 
-```mjs
-if (process.env.NODE_ENV === "test") log("\nRunning tests...\n\n")
-
-let previousFilename = ""
-```
-
 The function you're most likely here for. Example usage:
 `test(someFunction, ({ eq }) => { eq(someFunction(), expectedOutput) })`
 
 ```mjs
-export async function test(subject, fn) {
-  if (process.env.NODE_ENV !== "test") return
+export function test(subject, fn) {
   const filename = callingFilename()
 
-  if (filename !== previousFilename) {
+  const entry = { filename, subject, fn }
+  if (process.env.NODE_ENV == "test") runTest(entry)
+  else cases.push(entry)
+}
+
+export async function runAll() {
+  log("\nRunning tests...\n\n")
+  for (const entry of cases) await runTest(entry)
+  log("\nDone.\n")
+}
+
+let previousFilename = ""
+
+export async function runTest({ filename, subject, fn }) {
+  if (filename != previousFilename) {
     console.log("\n" + filename)
     previousFilename = filename
   }
