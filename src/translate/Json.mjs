@@ -7,3 +7,11 @@ Translate.register("parse", String, str => {
     return JSON.parse(str)
   } catch (_) {}
 })
+
+Translate.register("parse")
+  .accepts(String)
+  .then(str => {
+    try {
+      return JSON.parse(str)
+    } catch (_) {}
+  })

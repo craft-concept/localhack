@@ -1,5 +1,5 @@
 import { Enum } from "lib/Enum"
-import { T, match } from "lib/patterns"
+import { T, matchInputs } from "lib/patterns"
 import { fnWith } from "lib/fns"
 import Yaml from "yaml"
 
@@ -10,20 +10,26 @@ export default class Translate {
 
   static register(type, pattern, fn) {
     this.define(type)
-    fn = fnWith({ pattern, name: fn.name || `unnamed_${type}` }, fn)
+
+    if (!fn) return new Translator(type)
+    return this.add(type, [pattern], fn)
+  }
+
+  static add(type, inputs, fn) {
+    fn = fnWith({ inputs, name: fn.name || `unnamed_${type}` }, fn)
 
     this.registry[type] ??= []
     this.registry[type].unshift(fn)
   }
 
-  static to(type, item, ...rest) {
+  static to(type, ...inputs) {
     this.registry[type] ??= []
 
     return Enum.gen(
       function* translations() {
         for (const fn of this.registry[type]) {
-          if (match(fn.pattern)(item)) {
-            const res = fn(item, ...rest)
+          if (matchInputs(fn, inputs)) {
+            const res = fn(...inputs)
             if (res != null) yield res
           }
         }
@@ -37,5 +43,22 @@ export default class Translate {
     this[name] = fnWith({ name }, (item, ...rest) =>
       this.to(name, item, ...rest),
     )
+  }
+}
+
+export class Translator {
+  constructor(type) {
+    this.type = type
+  }
+
+  accepts(...inputs) {
+    this._accepts = inputs
+    return this
+  }
+
+  then(fn) {
+    this._fn = fn
+    Translate.add(this.type, this._accepts[0], fn)
+    return this
   }
 }

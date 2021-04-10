@@ -11,6 +11,7 @@ import electron from "electron"
 import { execFile, spawn } from "child_process"
 import Yaml from "yaml"
 
+import "cmd/eval"
 import "cmd/http"
 import "cmd/to"
 import "cmd/test"

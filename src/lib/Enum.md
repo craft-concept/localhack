@@ -38,6 +38,15 @@ iter.test?.(({ eq }) => {
 ```
 
 ```mjs
+export function* indexed(xs) {
+  let i = 0
+  for (const x of iter(xs)) {
+    yield [x, i++]
+  }
+}
+```
+
+```mjs
 /**
  * Returns a function that maps over its inputs, passing each through `fn`.
  */
