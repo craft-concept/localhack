@@ -86,6 +86,9 @@ export function match(pattern) {
 
     case "object":
       return Array.isArray(pattern) ? matchArray(pattern) : matchObject(pattern)
+
+    case "function":
+      return data => pattern(data)
   }
 
   throw new Error(`Unimplemented pattern: ${pattern}.`)
@@ -172,6 +175,8 @@ test(match, ({ truthy, falsy }) => {
   const noMatch = (p, v) => falsy(match(p)(v))
 
   matches(T.Any, 1234)
+  matches(T.Any, "hi")
+  matches(T.Any, { x: 1 })
 
   matches(Number, 1234)
   noMatch(Number, "no")

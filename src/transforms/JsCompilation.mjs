@@ -5,24 +5,22 @@ export const loaders = {
   ".ohm": "text",
 }
 
-export default [render]
+export default [compile]
 
-export function* render({ compiled }) {
-  if (typeof this.source != "string") return
+export async function* compile({ source, path, ext }, { compiled }, send) {
+  if (typeof source != "string") return
   if (compiled != String) return
 
-  return async send => {
-    const { code } = await Esbuild.transform(text, {
-      sourcefile: this.path,
-      target: "node12",
-      loader: loaders[this.ext],
-      // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
-      format: "esm",
-    })
+  const { code } = await Esbuild.transform(text, {
+    sourcefile: path,
+    target: "node12",
+    loader: loaders[ext],
+    // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
+    format: "esm",
+  })
 
-    send({
-      name,
-      compiled: code,
-    })
-  }
+  send({
+    name,
+    compiled: code,
+  })
 }

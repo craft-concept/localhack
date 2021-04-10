@@ -10,7 +10,7 @@ export function makeFn(fn, { name, ...props }) {
  * Add properties to a function.
  */
 export function fnWith({ name, ...props }, fn) {
-  Object.defineProperty(fn, "name", { value: name })
+  Object.defineProperty(fn, "name", { value: name || fn.name })
   return Object.assign(fn, props)
 }
 

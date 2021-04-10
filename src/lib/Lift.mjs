@@ -4,6 +4,7 @@ import { createWith } from "lib/edit"
 export class Lift {
   constructor(state = {}) {
     this.state = state
+    this.plugins = []
     this.send = this.send.bind(this)
   }
 
@@ -21,21 +22,30 @@ export class Lift {
     return this.transform(msg)
   }
 
-  transform(root) {
-    return Enum.of(this.walk(root))
+  transform(root, ctx = {}) {
+    return Enum.of(this.walk(root, ctx))
   }
 
-  *walk(nodes) {
+  walkDown(parentCtx, nodes, addCtx = {}) {
     if (nodes == null) return
 
-    const recur = this.send
+    const ctx = createWith(parentCtx, addCtx)
+    return this.walk(nodes, ctx)
+  }
+
+  *walk(nodes, ctx) {
+    if (nodes == null) return
+
+    const recur = this.walkDown.bind(this, ctx)
     const returns = []
 
     for (const node of iter(nodes)) {
+      if (typeof node == "function") this.plugins.push(node)
+
       // Mutate the current node
       for (const plugin of this.plugins) {
         // console.log("walking with", plugin.name, node)
-        returns.push(yield* iter(plugin.call(node, recur, this.state)))
+        returns.push(yield* iter(plugin.call(null, node, ctx, recur)))
       }
     }
 
@@ -63,22 +73,21 @@ Lift.test?.(({ eq }) => {
     "[_Hello_ there]",
   )
 
-  function Button() {
-    if (!this.Button) return
+  function Button(node) {
+    if (!node.Button) return
 
-    this.open = "["
-    this.close = "]"
+    node.open = "["
+    node.close = "]"
   }
 
-  function Emphasis() {
-    if (!this.Emphasis) return
+  function Emphasis(node) {
+    if (!node.Emphasis) return
 
-    this.open = "_"
-    this.close = "_"
+    node.open = "_"
+    node.close = "_"
   }
 
-  function* AsciiTags(recur) {
-    const { open, close, children } = this
+  function* AsciiTags({ open, close, children }, _, recur) {
     if (!open || !close) return
 
     yield open
@@ -86,7 +95,7 @@ Lift.test?.(({ eq }) => {
     yield close
   }
 
-  function* AsciiText() {
-    if (typeof this == "string") yield this
+  function* AsciiText(node) {
+    if (typeof node == "string") yield node
   }
 })

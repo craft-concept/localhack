@@ -10,7 +10,8 @@
   "license": "MIT",
   "main": "dist/entries/cli.mjs",
   "bin": {
-    "hack": "dist/cli.mjs"
+    "hack": "dist/cli.mjs",
+    "hacky": ".hack/build/entries/cli.mjs"
   },
   "exports": {
     ".": "./dist/index.mjs",
@@ -23,7 +24,9 @@
     "build": "yarn cli build",
     "dist": "yarn cli dist",
     "watch": "yarn cli watch",
-    "ui": "yarn cli ui"
+    "ui": "yarn cli ui",
+    "to": ".hack/build/entries/cli.mjs to",
+    "repl": "node --no-warnings --experimental-loader=./.hack/build/entries/NodeLoader.mjs --experimental-repl-await"
   },
   "repository": "https://github.com/craft-concept/localhack",
   "keywords": [

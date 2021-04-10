@@ -6,7 +6,6 @@ import { T, Future } from "lib"
 import * as Project from "lib/project"
 
 export default [
-  BufferCaching,
   BufferReading,
   TextBuffering,
   BufferWriting,
@@ -14,24 +13,14 @@ export default [
   PathGlobbing,
 ]
 
-export function BufferCaching(_, _, state) {
-  const { path, buffer } = this
-  if (typeof path != "string") return
-
-  if (buffer instanceof Buffer) state[path] = buffer
-  if (state[path] && buffer == Buffer) return { path, buffer: state[path] }
-}
-
-export async function* BufferReading() {
-  const { path, buffer } = this
+export async function* BufferReading({ path, buffer }) {
   if (typeof path != "string") return
   if (buffer != Buffer) return
 
   yield { path, buffer: await fs.readFile(Project.root(path)) }
 }
 
-export function* TextBuffering(_, recur) {
-  const { path, text } = this
+export function* TextBuffering({ path, text }, ctx, recur) {
   if (typeof path != "string") return
   if (text != String) return
 
@@ -40,8 +29,7 @@ export function* TextBuffering(_, recur) {
   })
 }
 
-export async function* BufferWriting() {
-  const { path, buffer, mode, writtenAt } = this
+export async function* BufferWriting({ path, buffer, mode, writtenAt }) {
   if (writtenAt != Date) return
   if (typeof path != "string") return
   if (!(buffer instanceof Buffer)) return
@@ -54,9 +42,7 @@ export async function* BufferWriting() {
   yield { path, mode, writtenAt: new Date() }
 }
 
-export function TextWriting(_, recur) {
-  const { path, text, writtenAt } = this
-
+export function TextWriting({ path, text, writtenAt }, ctx, recur) {
   if (writtenAt != Date) return
   if (typeof path != "string") return
   if (typeof text != "string") return
@@ -64,7 +50,7 @@ export function TextWriting(_, recur) {
   return recur({ path, writtenAt, buffer: Buffer.from(text) })
 }
 
-export async function* PathGlobbing({ glob, path }, recur) {
+export async function* PathGlobbing({ glob, path }, ctx, recur) {
   if (typeof glob != "string") return
   if (path != String) return
 

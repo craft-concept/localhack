@@ -140,6 +140,10 @@ export class Enum {
     return new Enum(generator)
   }
 
+  static get empty() {
+    return Enum.of()
+  }
+
   constructor(fn) {
     this.iter = fn
   }
@@ -229,6 +233,16 @@ export class Enum {
 
   join(sep = "") {
     return this.array.join(sep)
+  }
+
+  else(fn) {
+    if (this.isEmpty) return fn()
+    return this
+  }
+
+  get isEmpty() {
+    for (const _ of this) return false
+    return true
   }
 
   get first() {

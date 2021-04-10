@@ -21,13 +21,13 @@ import Markdown from "./Markdown"
 function MarkdownTest() {}
 
 MarkdownTest.test?.(async ({ eq }) => {
-  const plugins = [Markdown]
-  const lift = new Lift().use(plugins)
-  const tx = root => lift.transform(root).join()
+  const lift = new Lift().use(Markdown)
+  const tx = (root, ctx) => lift.transform(root, ctx).join()
 
   const text = String(await readFile(Project.src("transforms/MarkdownTest.md")))
+  const { markdown } = tx({ ext: ".md", text }, { markdown: Object })
 
-  eq(tx({ ext: ".md", text }), text)
+  eq(tx({ markdown }, { markdown: String }), text)
 })
 ```
 
