@@ -107,15 +107,19 @@ export function isType(pattern) {
   return pattern && typeof pattern === "object" && "__type" in pattern
 }
 
-export const matchObject = pattern => data => {
-  if (typeof data !== "object") return
+export const matchObject = pattern => {
+  if (pattern instanceof RegExp) return matchRegex(pattern)
 
-  for (const key in pattern) {
-    if (!(key in data)) return
-    if (!match(pattern[key])(data[key])) return
+  return data => {
+    if (typeof data !== "object") return
+
+    for (const key in pattern) {
+      if (!(key in data)) return
+      if (!match(pattern[key])(data[key])) return
+    }
+
+    return true
   }
-
-  return true
 }
 
 export const matchArray = pattern => data => {
@@ -128,6 +132,10 @@ export const matchArray = pattern => data => {
   }
 
   return true
+}
+
+export const matchRegex = pattern => data => {
+  return typeof data == "string" && pattern.test(data)
 }
 
 export const deepEqual = a => b => {
@@ -199,6 +207,9 @@ test(match, ({ truthy, falsy }) => {
   noMatch(T.Pattern(T.Number), T.String)
   noMatch(T.Pattern(T.Number), 1234)
   matches(T.Pattern(1), 1)
+
+  matches(/bc/, "abcd")
+  noMatch(/bc/, "def")
 })
 
 guard(guard, [T.Function(), [T.Any]])
