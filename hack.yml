@@ -1,4 +1,4 @@
-# example: lib/Enum -> .hack/build/lib/Enum.mjs
+# example: lib/Enum -> .hack/build/src/lib/Enum.mjs
 paths:
   - "%.mjs"
   - .hack/%

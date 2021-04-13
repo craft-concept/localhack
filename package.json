@@ -11,7 +11,7 @@
   "main": "dist/entries/cli.mjs",
   "bin": {
     "hack": "dist/cli.mjs",
-    "hacky": ".hack/build/entries/cli.mjs"
+    "hacky": ".hack/build/src/entries/cli.mjs"
   },
   "exports": {
     ".": "./dist/index.mjs",
@@ -19,14 +19,14 @@
   },
   "scripts": {
     "clean": "rm -r .hack/build/*",
-    "test": "NODE_ENV=test .hack/build/entries/cli.mjs test",
-    "cli": ".hack/build/entries/cli.mjs",
+    "test": "NODE_ENV=test .hack/build/src/entries/cli.mjs test",
+    "cli": ".hack/build/src/entries/cli.mjs",
     "build": "yarn cli build",
     "dist": "yarn cli dist",
     "watch": "yarn cli watch",
     "ui": "yarn cli ui",
-    "to": ".hack/build/entries/cli.mjs to",
-    "repl": "node --no-warnings --experimental-loader=./.hack/build/entries/NodeLoader.mjs --experimental-repl-await"
+    "to": ".hack/build/src/entries/cli.mjs to",
+    "repl": "node --no-warnings --experimental-loader=./.hack/build/src/entries/NodeLoader.mjs --experimental-repl-await"
   },
   "repository": "https://github.com/craft-concept/localhack",
   "keywords": [
