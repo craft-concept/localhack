@@ -18,37 +18,44 @@ implemented tangling. Weaving is supported well enough by viewing the source on
 github.
 
 ```mjs
+import md from "@textlint/markdown-to-ast"
 import { iter, entries } from "lib"
-```
 
-First we'll define a plugin that tangles our markdown source.
-
-```mjs
-export function tangling(input, state) {
-  const { path, markdown } = input
-  if (!path) return
-  if (!markdown) return
-
-  const code = {}
-  for (const node of iter(markdown)) {
-    if (node.type !== "fence") continue
-
-    const blocks = (code[node.info] ??= [])
-    blocks.push(node.content)
+export default class Literate {
+  static parse(source) {
+    return md.parse(source)
   }
 
-  return send => {
+  static *tangle(source, { path }) {
+    let doc = this.parse(source)
+
+    let code = {}
+    for (let node of doc.children) {
+      if (node.type != "CodeBlock") continue
+      if (!node.lang) continue
+
+      code[node.lang] ??= []
+      code[node.lang].push(node.value)
+    }
+
     for (const [ext, blocks] of entries(code)) {
-      send({
-        virtual: true,
+      yield {
         path: path.replace(/\.md$/, "." + ext),
-        text: blocks.join("\n\n"),
-      })
+        source: blocks.join("\n\n"),
+      }
+    }
+
+    return send => {
+      for (const [ext, blocks] of entries(code)) {
+        send({
+          virtual: true,
+          path: path.replace(/\.md$/, "." + ext),
+          text: blocks.join("\n\n"),
+        })
+      }
     }
   }
 }
-
-export const all = [tangling]
 ```
 
 ## Notes

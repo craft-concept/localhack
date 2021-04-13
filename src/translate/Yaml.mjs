@@ -14,6 +14,8 @@ Yaml.defaultOptions.customTags.push({
   },
 })
 
+Translate.shape("yaml", String).shape("parse", T.Any)
+
 Translate.register("yaml", T.Any, Yaml.stringify)
 
 Translate.register("parse", String, str => {

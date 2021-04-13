@@ -7,6 +7,16 @@ export { T }
 
 export default class Translate {
   static registry = {}
+  static shapes = {}
+
+  static shape(type, pattern) {
+    this.define(type)
+
+    this.shapes[type] ??= []
+    // Todo: `.includes()` is not good enough
+    if (!this.shapes[type].includes(pattern)) this.shapes[type].push(pattern)
+    return this
+  }
 
   static register(type, pattern, fn) {
     this.define(type)
@@ -20,6 +30,7 @@ export default class Translate {
 
     this.registry[type] ??= []
     this.registry[type].unshift(fn)
+    return this
   }
 
   static to(type, ...inputs) {

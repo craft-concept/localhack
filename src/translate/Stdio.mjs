@@ -1,5 +1,10 @@
 import Translate, { T } from "lib/Translate"
 
+Translate.shape("buffer", Buffer)
+  .shape("stdin", { _readableState: {}, fd: 0 })
+  .shape("stdout", { _readableState: {}, fd: 1 })
+  .shape("stderr", { _readableState: {}, fd: 2 })
+
 Translate.register("console", T.Any, obj => {
   console.write(obj)
   return obj

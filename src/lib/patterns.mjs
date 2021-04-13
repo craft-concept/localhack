@@ -72,8 +72,16 @@ export function matchInputs(fn, inputs) {
   return match(fn.inputs)(inputs)
 }
 
+export function matchAll(pattern, ...datas) {
+  for (let data of datas) {
+    if (!match(pattern, data)) return false
+  }
+  return true
+}
+
 // Todo: return a generator of matched vars
-export function match(pattern) {
+export function match(pattern, data = undefined) {
+  if (data !== undefined) return match(pattern)(data)
   pattern = reify(pattern)
   if (isType(pattern)) return matchType(pattern)
 
