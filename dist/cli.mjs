@@ -596,12 +596,13 @@ var loaders = {
   ".ohm": "text",
 }
 function transpiling(input, state2) {
-  const { name, path: path22, text } = input
+  const { name, path: path22, text, compiled } = input
+  if (compiled) return
   if (!path22) return
   if (!text) return
   if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path22)) return
   const outputPath = path22
-    .replace("/src/", "/.hack/build/")
+    .replace("/src/", "/.hack/build/src/")
     .replace(/\/Readme\.(\w+)$/, ".$1")
   return async send2 => {
     const { code } = await Esbuild.transform(text, {
@@ -611,6 +612,7 @@ function transpiling(input, state2) {
       format: "esm",
     })
     send2({
+      compiled: true,
       path: outputPath,
       text: code,
       source: path22,

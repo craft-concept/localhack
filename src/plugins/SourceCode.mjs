@@ -12,7 +12,7 @@ export async function* TranspilingJs({ name, source, compiled }) {
   // if (!/\/src\/.+\.(m?jsx?|ohm)$/.test(path)) return
 
   // const outputPath = path
-  //   .replace("/src/", "/.hack/build/")
+  //   .replace("/src/", "/.hack/build/src/")
   //   .replace(/\/Readme\.(\w+)$/, ".$1")
 
   const { code } = await Esbuild.transform(text, {

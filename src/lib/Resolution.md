@@ -30,7 +30,7 @@ facetsFor.test?.(({ eq }) => {
 ```
 
 ```mjs
-export const defaultRoots = [join(process.cwd(), ".hack/build")]
+export const defaultRoots = [join(process.cwd(), ".hack/build/src")]
 
 export function* pathsFor(name, from, ...roots) {
   if (isRelative(name)) {

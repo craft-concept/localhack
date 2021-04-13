@@ -1,13 +1,14 @@
 import { program } from "commander"
 import { createServer } from "http"
 import Translate from "lib/Translate"
+import Config from "lib/Config"
 
 import "translate/Http"
 
 program
   .command("http")
   .description("Start an http server.")
-  .option("-p, --port <number>", "Port to listen on.", 1337)
+  .option("-p, --port <number>", "Port to listen on.", Config.http.port)
   .action(main)
 
 function main({ port }) {

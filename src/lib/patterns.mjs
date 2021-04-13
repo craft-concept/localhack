@@ -120,6 +120,7 @@ export const matchObject = pattern => {
 
   return data => {
     if (typeof data !== "object") return
+    if (data == null) return
 
     for (const key in pattern) {
       if (!(key in data)) return

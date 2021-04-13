@@ -6,3 +6,6 @@ paths:
   - src/%
   - node_modules/%
   - "@core/%"
+
+http:
+  port: 1337
