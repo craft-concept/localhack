@@ -5,6 +5,7 @@ import defaults from "hack.yml"
 
 export default class Config {
   static paths = []
+  static http = {}
 
   static merge(config) {
     for (let k in config) {

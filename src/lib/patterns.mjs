@@ -82,6 +82,7 @@ export function matchAll(pattern, ...datas) {
 // Todo: return a generator of matched vars
 export function match(pattern, data = undefined) {
   if (data !== undefined) return match(pattern)(data)
+  if (pattern === null) return data => data === null
   pattern = reify(pattern)
   if (isType(pattern)) return matchType(pattern)
 
@@ -187,13 +188,22 @@ export function matchType(pattern) {
   }
 }
 
-test(match, ({ truthy, falsy }) => {
-  const matches = (p, v) => truthy(match(p)(v))
-  const noMatch = (p, v) => falsy(match(p)(v))
+test(match, async ({ truthy, falsy }) => {
+  let { inspect } = await import("util")
+
+  const matches = (p, v) =>
+    truthy(match(p)(v), `Expected: matches(${p}, ${inspect(v)})`)
+  const noMatch = (p, v) =>
+    falsy(match(p)(v), `Expected: noMatch(${p}, ${inspect(v)})`)
 
   matches(T.Any, 1234)
   matches(T.Any, "hi")
   matches(T.Any, { x: 1 })
+
+  matches({}, {})
+  matches({}, { x: 1 })
+  noMatch({}, null)
+  noMatch(null, {})
 
   matches(Number, 1234)
   noMatch(Number, "no")
