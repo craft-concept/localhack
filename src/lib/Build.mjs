@@ -9,7 +9,7 @@ import * as Project from "lib/Project"
 
 export default class Build {
   static project() {
-    return this.all("hack.yml", "src/**/*.{yml,html,ts,js,mjs,md,ohm}")
+    return this.all("hack.yml", "src/**/*")
   }
 
   static async all(...globs) {
@@ -36,16 +36,17 @@ export default class Build {
     let source = String(await fs.readFile(Project.root(path)))
     let mods = Compile.module(source, { path })
 
-    for (let modP of mods) {
-      const { path, compiled } = await modP
-      let buildPath = Project.build(path).replace(/\/Readme(\.[.\w]+)$/, "$1")
+    for (let modP of mods) this.write(await modP)
+  }
 
-      let mode = compiled.slice(0, 2) == "#!" ? 0o755 : 0o644
-      let fullPath = Project.root(buildPath)
+  static async write({ path, compiled }) {
+    let buildPath = Project.build(path).replace(/\/Readme(\.[.\w]+)$/, "$1")
 
-      await fs.mkdir(dirname(fullPath), { recursive: true })
-      await fs.writeFile(fullPath, compiled, { mode })
-      console.log(`${chalk.green("Wrote")}: ${path}`)
-    }
+    let mode = compiled.slice(0, 2) == "#!" ? 0o755 : 0o644
+    let fullPath = Project.root(buildPath)
+
+    await fs.mkdir(dirname(fullPath), { recursive: true })
+    await fs.writeFile(fullPath, compiled, { mode })
+    console.log(`${chalk.green("Wrote")}: ${path}`)
   }
 }
