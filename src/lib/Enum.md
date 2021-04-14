@@ -95,8 +95,8 @@ export function* fns(...x) {
 Some object iteration helpers:
 
 ```mjs
-import { edit } from "./edit.mjs"
-import { isObj } from "./reify.mjs"
+import { edit } from "./edit"
+import { isObj } from "./reify"
 
 /** Iterate over the keys of an object. */
 export function* keys(obj) {

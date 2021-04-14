@@ -60,6 +60,15 @@ export async function realPathFor(name, from, ...roots) {
     } catch (e) {}
   }
 }
+
+export async function isPackage(name) {
+  try {
+    await fs.access(join(process.cwd(), "node_modules", name))
+    return true
+  } catch (e) {
+    return false
+  }
+}
 ```
 
 A lazily implemented `join` function.

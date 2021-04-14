@@ -1,15 +1,13 @@
 import fg from "fast-glob"
-import fs from "fs/promises"
-import { dirname } from "path"
-import chalk from "chalk"
+import Esbuild from "esbuild"
 
-import { iter } from "lib"
 import * as Project from "lib/Project"
+import * as Res from "lib/Resolution"
 import Build from "lib/Build"
 
 export default class Bundle {
   static project() {
-    return this.all("src/entries/**/*.{mjs,js,ts,jsx,tsx,mjsx}")
+    return this.all(".hack/build/src/entries/**/*.{mjs,js,ts,jsx,tsx,mjsx}")
   }
 
   static async all(...globs) {
@@ -27,13 +25,16 @@ export default class Bundle {
   static async *entries(entryPoints) {
     const { outputFiles, warnings } = await Esbuild.build({
       entryPoints,
+      plugins: [this.resolvePlugin],
       platform: "node",
       bundle: true,
       target: "node12",
       format: "esm",
-      outExtension: { ".js": ".mjs", ".jsx": ".mjs" },
+      outExtension: { ".js": ".mjs" },
       external: [
         "chalk",
+        "child_process",
+        "commander",
         "electron",
         "esbuild",
         "fast-glob",
@@ -54,5 +55,22 @@ export default class Bundle {
         compiled: out.text,
       }
     }
+  }
+
+  static resolvePlugin = {
+    name: "Resolution",
+    setup(build) {
+      build.onResolve({ filter: /./ }, async args => {
+        let path = await Res.realPathFor(args.path, args.resolveDir)
+        if (path) {
+          return { path }
+        } else if (Res.isPackage(args.path)) {
+          return { path: args.path, external: true }
+        }
+
+        console.log(args.path, "from:", args.resolveDir)
+        console.log("  resolved:", path)
+      })
+    },
   }
 }

@@ -13,6 +13,7 @@ import Yaml from "yaml"
 
 import "cmd/build"
 import "cmd/watch"
+import "cmd/dist"
 import "cmd/test"
 import "cmd/to"
 import "cmd/eval"
