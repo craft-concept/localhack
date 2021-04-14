@@ -38,7 +38,7 @@ export default class Build {
 
     for (let modP of mods) {
       const { path, compiled } = await modP
-      let buildPath = Project.build(path)
+      let buildPath = Project.build(path).replace(/\/Readme(\.[.\w]+)$/, "$1")
 
       let mode = compiled.slice(0, 2) == "#!" ? 0o755 : 0o644
       let fullPath = Project.root(buildPath)
