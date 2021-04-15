@@ -5,6 +5,7 @@ import chalk from "chalk"
 
 import { iter } from "lib"
 import Compile from "lib/Compile"
+import File from "lib/File"
 import * as Project from "lib/Project"
 
 export default class Build {
@@ -33,7 +34,7 @@ export default class Build {
   }
 
   static async file(path) {
-    let source = String(await fs.readFile(Project.root(path)))
+    let source = await File.at(path).read().then(String)
     let mods = Compile.module(source, { path })
 
     for (let modP of mods) this.write(await modP)
@@ -42,11 +43,7 @@ export default class Build {
   static async write({ path, compiled }) {
     let buildPath = Project.build(path).replace(/\/Readme(\.[.\w]+)$/, "$1")
 
-    let mode = compiled.slice(0, 2) == "#!" ? 0o755 : 0o644
-    let fullPath = Project.root(buildPath)
-
-    await fs.mkdir(dirname(fullPath), { recursive: true })
-    await fs.writeFile(fullPath, compiled, { mode })
+    await File.at(buildPath).write(compiled)
     console.log(`${chalk.green("Wrote")}: ${path}`)
   }
 }

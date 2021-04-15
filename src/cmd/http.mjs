@@ -16,9 +16,10 @@ function main({ port }) {
 }
 
 export let server = createServer(async (req, res) => {
+  console.log(`Request: '${req.url}'`)
   try {
     const str = await Translate.http(req, res).first
-    res.end(`${str}`)
+    res.end(typeof str == "string" ? `${str}` : undefined)
   } catch (e) {
     console.error(e)
   }

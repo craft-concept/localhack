@@ -1,16 +1,21 @@
-import { paths } from "hack.yml"
-import * as Resolve from "@core/lib/Resolve"
+import Config from "lib/Config"
+import * as Res from "lib/Resolution"
+// import Resolve from "@core/lib/Resolve"
 
-export function* roots() {}
+export default class Resolve {
+  static *roots() {}
 
-export function* aliased(name) {
-  for (const path of paths) {
-    yield path.replace("%", name)
+  static *aliased(name) {
+    for (const path of Config.paths) {
+      yield path.replace("%", name)
+    }
+
+    for (const path of Config.paths) {
+      yield* aliased(path.replace("%", name))
+    }
   }
 
-  for (const path of paths) {
-    yield* aliased(path.replace("%", name))
+  static async real(path, parent) {
+    return Res.realPathFor(path, parent)
   }
 }
-
-export async function real(path, parent) {}

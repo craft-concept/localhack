@@ -17,7 +17,10 @@ import fs from "fs/promises"
 
 ```mjs
 function* facetsFor(name) {
-  if (/\.m?js$/.test(name)) return name
+  if (/\.m?js$/.test(name)) {
+    yield name
+    return
+  }
 
   yield `${name}.mjs`
   yield `${name}/Readme.mjs` // Not actually sure we need this one
@@ -33,6 +36,7 @@ facetsFor.test?.(({ eq }) => {
 export const defaultRoots = [
   join(process.cwd(), ".hack/build"),
   join(process.cwd(), ".hack/build/src"),
+  join(process.cwd(), ".hack/build/src/entries"),
 ]
 
 export function* pathsFor(name, from, ...roots) {
