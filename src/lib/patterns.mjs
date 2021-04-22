@@ -97,7 +97,7 @@ export function match(pattern, data = undefined) {
       return Array.isArray(pattern) ? matchArray(pattern) : matchObject(pattern)
 
     case "function":
-      return data => pattern(data)
+      return data => data instanceof pattern
   }
 
   throw new Error(`Unimplemented pattern: ${pattern}.`)
@@ -229,6 +229,10 @@ test(match, async ({ truthy, falsy }) => {
 
   matches(/bc/, "abcd")
   noMatch(/bc/, "def")
+
+  function Foo() {}
+  matches(Foo, new Foo())
+  noMatch(Foo, {})
 })
 
 guard(guard, [T.Function(), [T.Any]])
