@@ -46,8 +46,8 @@ The function you're most likely here for. Example usage:
 `test(someFunction, ({ eq }) => { eq(someFunction(), expectedOutput) })`
 
 ```mjs
-export function test(subject, fn) {
-  const filename = callingFilename()
+export function test(subject, fn, skip = 0) {
+  const filename = callingFilename(skip)
 
   const entry = { filename, subject, fn }
   if (process.env.NODE_ENV == "test") runTest(entry)
@@ -124,12 +124,15 @@ export function* stackDetails(err) {
 /**
  * Returns the first filename in the call stack that is not this one.
  */
-export function callingFilename() {
+export function callingFilename(skip = 0) {
   const err = new Error()
   let current
   for (const { name } of stackDetails(err)) {
     current ??= name
-    if (name !== current) return name
+    if (name !== current) {
+      if (skip == 0) return name
+      else skip--
+    }
   }
 }
 ```
