@@ -28,7 +28,14 @@ function* facetsFor(name) {
 }
 
 facetsFor.test?.(({ eq }) => {
-  eq([...facetsFor("lib/Resolution")], ["lib/Resolution.mjs", "lib/Res"])
+  eq(
+    [...facetsFor("lib/Resolution")],
+    [
+      "lib/Resolution.mjs",
+      "lib/Resolution/Readme.mjs",
+      "lib/Resolution/index.mjs",
+    ],
+  )
 })
 ```
 
@@ -50,9 +57,9 @@ export function* pathsFor(name, from, ...roots) {
   }
 }
 
-pathsFor.test?.(({ eq }) => {
-  eq([...pathsFor("lib/Resolution")], ["lib/Resolution"])
-})
+// pathsFor.test?.(({ eq }) => {
+//   eq([...pathsFor("lib/Resolution")], ["lib/Resolution"])
+// })
 ```
 
 ```mjs
