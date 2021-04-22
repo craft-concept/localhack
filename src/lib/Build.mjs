@@ -44,6 +44,6 @@ export default class Build {
     let buildPath = Project.build(path).replace(/\/Readme(\.[.\w]+)$/, "$1")
 
     await File.at(buildPath).write(compiled)
-    console.log(`${chalk.green("Wrote")}: ${path}`)
+    console.log(`${chalk.green("Built")}: ${path}`)
   }
 }
