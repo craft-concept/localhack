@@ -13,6 +13,12 @@ import * as Project from "lib/Project"
 
 export default Precursor.clone.def({
   name: "Build",
+
+  watch(...roots) {
+    if (!roots.length) roots = ["hack.yml", "src/"]
+    return File.watch(...roots).map(f => this.file(f.path))
+  },
+
   project() {
     return this.all("hack.yml", "src/**/*")
   },
