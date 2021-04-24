@@ -13,10 +13,6 @@ async function main() {
   try {
     System.log("Building...")
     await Build.project()
-      .tap(({ path }) => {
-        System.log(`${chalk.green("Built")}: ${path}`)
-      })
-      .tapErrors(System.report)
     System.log("Done.")
   } catch (err) {
     System.report(err)

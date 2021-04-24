@@ -1,12 +1,14 @@
 import fg from "fast-glob"
 import fs from "fs/promises"
 import { dirname } from "path"
-import Stream from "lib/Stream"
+import chalk from "chalk"
 
+import Stream from "lib/Stream"
 import { iter, Enum } from "lib/Enum"
 import Precursor from "lib/Precursor"
 import Compile from "lib/Compile"
 import File from "lib/File"
+import System from "lib/System"
 import * as Project from "lib/Project"
 
 export default Precursor.clone.def({
@@ -36,6 +38,10 @@ export default Precursor.clone.def({
       .map(source => ({ path, source }))
       .flatMap(Compile.module)
       .tap(this.write)
+      .tap(({ path }) => {
+        System.log(`${chalk.green("Built")}: ${path}`)
+      })
+      .tapErrors(System.report)
   },
 
   async write({ path, compiled }) {

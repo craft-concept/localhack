@@ -15,6 +15,6 @@ export default Precursor.clone.def({
 
   report(err) {
     let line = chalk.red("\n========================\n")
-    console.error(line, chalk.red("System.Error:"), err, line)
+    console.error(line, chalk.red("Error:"), err, line)
   },
 })
