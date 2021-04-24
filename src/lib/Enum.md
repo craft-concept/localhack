@@ -68,8 +68,6 @@ export function* withNext(iterable) {
     yield [res, next]
   } while (res.done === false)
 }
-
-withNext.test?.(({ eq }) => {})
 ```
 
 ```mjs
