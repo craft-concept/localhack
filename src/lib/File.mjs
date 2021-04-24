@@ -2,41 +2,11 @@ import fs from "fs"
 import fp from "fs/promises"
 import { dirname } from "path"
 
-import Stream from "lib/Stream"
 import Struct from "lib/Struct"
 import * as Project from "lib/Project"
 
 export default class File extends Struct {
   static required = ["path"]
-
-  static watch(...roots) {
-    return Stream.make(em => {
-      let watchers = []
-
-      for (let root of roots) {
-        console.log(`Watching '${root}'...`)
-
-        let watcher = fs.watch(Project.root(root), {
-          recursive: true,
-          persistent: true,
-        })
-
-        watchers.push(watcher)
-
-        watcher
-          .on("close", em.end)
-          .on("error", em.error)
-          .on("change", (event, relativePath) => {
-            let path = Project.file(Project.root(root, relativePath))
-            em.value(this.at(path))
-          })
-      }
-
-      return () => {
-        for (let watcher of watchers) watcher.close()
-      }
-    })
-  }
 
   static at(path) {
     return new this({ path })

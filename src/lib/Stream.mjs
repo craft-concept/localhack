@@ -47,12 +47,18 @@ def.call(Kefir, {
 
   make(fn) {
     return this.stream(emitter => {
-      let res = fn(emitter)
-      if (Promise.is(res)) {
-        res.then(() => emitter.end(), emitter.error)
-        return () => res.cancel?.()
-      } else {
-        return res
+      try {
+        let res = fn(emitter)
+
+        if (Promise.is(res)) {
+          res.catch(emitter.error)
+          return () => res.cancel?.()
+        } else {
+          return res
+        }
+      } catch (err) {
+        emitter.error(err)
+        emitter.end()
       }
     })
   },

@@ -14,7 +14,11 @@ export default Precursor.clone.def({
   },
 
   report(err) {
-    let line = chalk.red("\n========================\n")
-    console.error(line, chalk.red("Error:"), err, line)
+    if (err instanceof Error) {
+      let line = chalk.red("\n========================\n")
+      console.error(line, chalk.red("Error:"), err, line)
+    } else {
+      console.warn(chalk.orange(err))
+    }
   },
 })
