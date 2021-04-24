@@ -1,18 +1,35 @@
+export function assignFnName(fn, name, namespace) {
+  if (typeof fn != "function") return fn
+  if (namespace) name = `${namespace}_${name}`
+  Object.defineProperty(fn, "name", { value: name })
+  return fn
+}
+
 /**
  *
  * Todo:
  * - Make `.immutable` switch that prevents assignments without clone
  * - `.mutate(block)` for mutating
  */
-export function def(defs, val) {
-  if (typeof defs == "string") defs = { [defs]: val }
+export function def(defs) {
   if (typeof defs == "function") defs = defs.prototype
 
   let descriptors = Object.getOwnPropertyDescriptors(defs)
 
   for (let name in descriptors) {
     let desc = descriptors[name]
-    if ("value" in desc) desc.writable = true
+    if ("value" in desc) {
+      desc.writable = true
+      assignFnName(desc.value, name, this.name)
+      if (typeof desc.value == "function") {
+        let fn = desc.value
+        desc = {
+          get() {
+            return fn.bind(this)
+          },
+        }
+      }
+    }
     desc.configurable = true
     Object.defineProperty(this, name, desc)
   }
@@ -32,38 +49,20 @@ export default def
     },
 
     assign(props) {
-      Object.assign(this._, props)
+      Object.assign(this, props)
       return this
     },
 
-    flag(name, props) {
-      return this.def({
-        get [name]() {
-          return this.assign(props)
-        },
-      })
-    },
-
-    setter(...names) {
-      for (let name of names) {
-        this.def({
-          [name](value) {
-            return this.assign({ [name]: value })
-          },
-        })
-      }
-
-      return this
-    },
-
-    lazy(defs, val) {
-      if (typeof defs == "string") defs = { [defs]: val }
-
+    lazy(defs) {
       for (let name in defs) {
+        let derive = defs[name]
+        let cached = `_${name}`
+
         this.def({
-          [`_${name}`]: val,
           get [name]() {
-            return this.def(name, this[`_${name}`](this))[name]
+            if (!this.hasOwnProperty(cached))
+              this[cached] = derive.call(this, this[cached])
+            return this[cached]
           },
         })
       }
@@ -80,10 +79,6 @@ export default def
       return Object.create(this)
     },
 
-    with(props) {
-      return this.clone.assign(props)
-    },
-
     promise(fn) {
       return this.def({
         then(onRes, onRej) {
@@ -95,23 +90,33 @@ export default def
         },
       })
     },
-
-    test(fn) {
-      import("lib/Testing").then(({ test }) => {
-        test(this, fn.bind(this, this), 0)
-      })
-      return this
-    },
   })
-  .lazy("_", () => ({}))
-  .test((P, { eq }) => {
-    let p = P.clone
-      .lazy("y", t => t.x++)
-      .def({
-        x: 1,
-      })
+  .tap(P => {
+    P.def.test?.(({ eq }) => {
+      eq(P.def.name, "bound Precursor_def")
 
-    eq(p.x, 1)
-    eq(p.y, 1)
-    eq(p.x, 2)
+      let p = P.clone
+        .def({
+          x: 5,
+        })
+        .lazy({
+          y() {
+            return this.x++
+          },
+          depth(parentDepth = 0) {
+            return parentDepth + 1
+          },
+        })
+
+      let p2 = p.clone
+      let p3 = p2.clone
+
+      eq(p.x, 5)
+      eq(p.y, 5)
+      eq(p.x, 6)
+
+      eq(p.depth, 1)
+      eq(p2.depth, 2)
+      eq(p3.depth, 3)
+    })
   })

@@ -1,5 +1,7 @@
 import { program } from "commander"
+import chalk from "chalk"
 
+import System from "lib/System"
 import Build from "lib/Build"
 
 program
@@ -9,8 +11,14 @@ program
 
 async function main() {
   try {
+    System.log("Building...")
     await Build.project()
+      .tap(({ path }) => {
+        System.log(`${chalk.green("Built")}: ${path}`)
+      })
+      .tapErrors(System.report)
+    System.log("Done.")
   } catch (err) {
-    console.error(err)
+    System.report(err)
   }
 }

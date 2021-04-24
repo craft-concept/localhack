@@ -179,6 +179,11 @@ export class Enum {
     return this.map(edit(fn))
   }
 
+  tap(fn) {
+    fn.call(this, this)
+    return this
+  }
+
   map(fn) {
     return this.gen(function* mapped(xs) {
       for (const x of xs) yield fn(x)

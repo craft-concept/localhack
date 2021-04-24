@@ -40,14 +40,25 @@ export const throws = (err, fn) => {
 
   strict.fail(`Expected to throw ${err.name}`)
 }
+
+export const rejects = async (prom, err = Error) => {
+  try {
+    await prom
+  } catch (e) {
+    if (e instanceof err) return log(dot)
+    throw e
+  }
+
+  strict.fail(`Expected to reject with ${err.name}`)
+}
 ```
 
 The function you're most likely here for. Example usage:
 `test(someFunction, ({ eq }) => { eq(someFunction(), expectedOutput) })`
 
 ```mjs
-export function test(subject, fn, skip = 0) {
-  const filename = callingFilename(skip)
+export function test(subject, fn) {
+  const filename = callingFilename()
 
   const entry = { filename, subject, fn }
   if (process.env.NODE_ENV == "test") runTest(entry)
@@ -68,9 +79,12 @@ export async function runTest({ filename, subject, fn }) {
     previousFilename = filename
   }
 
-  log(`  ${chalk.yellow(subject.name || subject)}: `)
+  let name = subject.name || subject
+  name = name.replace(/^bound /, "")
+
+  log(`  ${chalk.yellow(name)}: `)
   try {
-    await fn({ eq, throws, truthy, falsy })
+    await fn({ rejects, eq, throws, truthy, falsy })
     log("\n")
   } catch (err) {
     log(chalk.red("✗"))
@@ -124,15 +138,12 @@ export function* stackDetails(err) {
 /**
  * Returns the first filename in the call stack that is not this one.
  */
-export function callingFilename(skip = 0) {
+export function callingFilename() {
   const err = new Error()
   let current
   for (const { name } of stackDetails(err)) {
     current ??= name
-    if (name !== current) {
-      if (skip == 0) return name
-      else skip--
-    }
+    if (name !== current) return name
   }
 }
 ```

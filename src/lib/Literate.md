@@ -19,41 +19,34 @@ github.
 
 ```mjs
 import md from "@textlint/markdown-to-ast"
-import { iter, entries } from "lib"
+import { entries } from "lib"
+import Stream from "lib/Stream"
 
 export default class Literate {
   static parse(source) {
     return md.parse(source)
   }
 
-  static *tangle(source, { path }) {
-    let doc = this.parse(source)
+  static tangle(source, { path }) {
+    return Stream.make(({ emit }) => {
+      let doc = this.parse(source)
 
-    let code = {}
-    for (let node of doc.children) {
-      if (node.type != "CodeBlock") continue
-      if (!node.lang) continue
+      let code = {}
+      for (let node of doc.children) {
+        if (node.type != "CodeBlock") continue
+        if (!node.lang) continue
 
-      code[node.lang] ??= []
-      code[node.lang].push(node.value)
-    }
-
-    for (const [ext, blocks] of entries(code)) {
-      yield {
-        path: path.replace(/\.md$/, "." + ext),
-        source: blocks.join("\n\n"),
+        code[node.lang] ??= []
+        code[node.lang].push(node.value)
       }
-    }
 
-    return send => {
-      for (const [ext, blocks] of entries(code)) {
-        send({
-          virtual: true,
+      for (let [ext, blocks] of entries(code)) {
+        emit({
           path: path.replace(/\.md$/, "." + ext),
-          text: blocks.join("\n\n"),
+          source: blocks.join("\n\n"),
         })
       }
-    }
+    })
   }
 }
 ```

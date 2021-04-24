@@ -1,8 +1,8 @@
-import Precursor from "lib/Precursor"
+import Builder from "lib/Builder"
 import Router from "lib/Router"
 import { match } from "lib/patterns"
 
-export let Messenger = Precursor.clone
+export let Messenger = Builder.clone
   .def({
     name: "Messenger",
     body(...body) {

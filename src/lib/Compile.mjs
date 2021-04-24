@@ -1,78 +1,95 @@
 import Esbuild from "esbuild"
 import { extname } from "path"
 
+import Stream from "lib/Stream"
+import Precursor from "lib/Precursor"
 import Literate from "lib/Literate"
 
-export default class Compile {
-  static *module(source, { path }) {
-    const ext = extname(path)
+export default Precursor.clone.def({
+  module(entry) {
+    return Stream.deep(this.rawModule(entry))
+  },
+
+  rawModule(entry) {
+    let { path, source } = entry
+    let ext = extname(path)
 
     switch (ext) {
       case ".json":
-        yield this.copy(source, { path })
-        yield this.json(source, { path })
-        return
+        return [this.copy(entry), this.json(entry)]
 
       case ".yml":
-        yield this.copy(source, { path })
-        yield this.yml(source, { path })
-        return
+        return [this.copy(entry), this.yml(entry)]
 
       case ".mjs":
       case ".js":
-        yield this.js(source, { path })
-        return
+        return this.js(entry)
 
       case ".mjsx":
       case ".jsx":
-        yield this.jsx(source, { path })
-        return
+        return this.jsx(entry)
 
       case ".ts":
       case ".tsx":
-        yield this.ts(source, { path })
-        return
+        return this.ts(entry)
 
       case ".md":
-        yield this.copy(source, { path })
-        yield* this.md(source, { path })
-        return
+        return [this.copy(entry), this.md(entry)]
+
+      case ".sql":
+        return [this.copy(entry), this.sql(entry)]
 
       case ".html":
       case ".ohm":
-        yield this.copy(source, { path })
-        return
+        return this.copy(entry)
 
       default:
-        throw new Error(`Cannot compile ${ext}`)
+        console.warn(`Unknown extension on path '${path}. Copying.`)
+        return this.copy(entry)
     }
-  }
+  },
 
-  static async js(source, { path }) {
-    const { code } = await Esbuild.transform(source, {
+  copy({ source, path }) {
+    return { source, compiled: source, path }
+  },
+
+  md(entry) {
+    return Literate.tangle(entry).flatMap(this.module)
+  },
+
+  async js({ source, path }) {
+    let { code, map } = await Esbuild.transform(source, {
       sourcefile: path,
       target: "node12",
+      sourcemap: "external",
       // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
       format: "esm",
     })
 
-    return { path, source, compiled: code }
-  }
+    return [
+      { path, source, compiled: code },
+      { path: `${path}.map`, compiled: map },
+    ]
+  },
 
-  static async jsx(source, { path }) {
-    const { code } = await Esbuild.transform(source, {
+  async jsx({ source, path }) {
+    let { code, map } = await Esbuild.transform(source, {
       loader: "jsx",
       sourcefile: path,
+      sourcemap: "external",
       target: "node12",
       // format: outputPath.endsWith(".mjs") ? "esm" : "cjs",
       format: "esm",
     })
 
-    return { path, source, compiled: code }
-  }
+    return [
+      { path, source, compiled: code },
+      { path: `${path}.map`, compiled: map },
+    ]
+  },
 
-  static async ts(source, { path }) {
-    const { code } = await Esbuild.transform(source, {
+  async ts({ source, path }) {
+    let { code } = await Esbuild.transform(source, {
       loader: "ts",
       sourcefile: path,
       target: "node12",
@@ -81,33 +98,33 @@ export default class Compile {
     })
 
     return { path, source, compiled: code }
-  }
+  },
 
-  static yml(source, { path }) {
-    const compiled = `import Yaml from "yaml"
+  yml({ source, path }) {
+    let compiled = `import Yaml from "yaml"
 
-export const path = "${path}"
-export const source = ${JSON.stringify(source)}
+export let path = "${path}"
+export let source = ${JSON.stringify(source)}
 export default Yaml.parse(source)
 `
     return { source, compiled, path: path + ".mjs" }
-  }
+  },
 
-  static json(source, { path }) {
-    const compiled = `export const path = "${path}"
-export const source = ${JSON.stringify(source)}
+  json({ source, path }) {
+    let compiled = `export let path = "${path}"
+export let source = ${JSON.stringify(source)}
 export default JSON.parse(source)
 `
     return { source, compiled, path: path + ".mjs" }
-  }
+  },
 
-  static *md(source, { path }) {
-    for (let mod of Literate.tangle(source, { path })) {
-      yield* this.module(mod.source, { path: mod.path })
-    }
-  }
+  sql({ source, path }) {
+    let compiled = `import Db from "db"
 
-  static copy(source, { path }) {
-    return { source, compiled: source, path }
-  }
-}
+export let path = "${path}"
+export let source = ${JSON.stringify(source)}
+export default Db.prepare(source)
+`
+    return { source, compiled, path: path + ".mjs" }
+  },
+})

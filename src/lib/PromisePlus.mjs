@@ -9,12 +9,22 @@ export default class PromisePlus extends Promise {
     return new this(fn)
   }
 
+  static is(x) {
+    return (
+      x != null &&
+      typeof x == "object" &&
+      "then" in x &&
+      typeof x.then == "function"
+    )
+  }
+
   constructor(fn) {
     let onCancel
     super((res, rej) => {
       onCancel = fn(res, rej)
     })
-    this.onCancel = onCancel
+
+    if (typeof onCancel == "function") this.onCancel = onCancel
   }
 
   get cancelled() {

@@ -28,8 +28,8 @@ export default class File extends Struct {
     return fp.mkdir(this.dir, { recursive: true })
   }
 
-  async read() {
-    return fp.readFile(this.absolutePath)
+  async read(map = x => x) {
+    return fp.readFile(this.absolutePath).then(map)
   }
 
   async write(data) {
