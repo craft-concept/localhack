@@ -9,7 +9,7 @@ import chalk from "chalk"
 
 export const dot = chalk.green("✓")
 
-export const cases = []
+export const cases = {}
 
 export const log = x => process.stdout.write(x)
 export const eq = (actual, expected, message) => {
@@ -62,13 +62,32 @@ export function test(subject, fn) {
 
   const entry = { filename, subject, fn }
   if (process.env.NODE_ENV == "test") runTest(entry)
-  else cases.push(entry)
+  else {
+    let k = entry.filename
+    cases[k] ??= []
+    cases[k].push(entry)
+  }
+}
+
+export async function testModule(mod) {
+  await import(`${mod}?break=${Math.random()}`).catch(console.error)
+
+  let Res = await import("lib/Resolution")
+  let Project = await import("lib/project")
+  let resolved = await Res.realPathFor(mod)
+  let name = Project.file(resolved).replace(/^.+src\//, "")
+
+  await runTestsFor(name)
 }
 
 export async function runAll() {
   log("\nRunning tests...\n\n")
-  for (const entry of cases) await runTest(entry)
+  for (const k in cases) await runTestsFor(k)
   log("\nDone.\n")
+}
+
+export async function runTestsFor(name) {
+  for (const entry of cases[name] ?? []) await runTest(entry)
 }
 
 let previousFilename = ""

@@ -27,26 +27,22 @@ export default class Literate {
     return md.parse(source)
   }
 
-  static tangle(source, { path }) {
-    return Stream.make(({ emit }) => {
-      let doc = this.parse(source)
+  static tangle({ source, path }) {
+    let doc = this.parse(source)
 
-      let code = {}
-      for (let node of doc.children) {
-        if (node.type != "CodeBlock") continue
-        if (!node.lang) continue
+    let code = {}
+    for (let node of doc.children) {
+      if (node.type != "CodeBlock") continue
+      if (!node.lang) continue
 
-        code[node.lang] ??= []
-        code[node.lang].push(node.value)
-      }
+      code[node.lang] ??= []
+      code[node.lang].push(node.value)
+    }
 
-      for (let [ext, blocks] of entries(code)) {
-        emit({
-          path: path.replace(/\.md$/, "." + ext),
-          source: blocks.join("\n\n"),
-        })
-      }
-    })
+    return Stream.iterate(entries(code)).map(([ext, blocks]) => ({
+      path: path.replace(/\.md$/, "." + ext),
+      source: blocks.join("\n\n"),
+    }))
   }
 }
 ```

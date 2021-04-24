@@ -22,7 +22,11 @@ export default Precursor.clone.def({
   watch(...roots) {
     if (!roots.length) roots = this.roots
 
-    return Watch.all(...roots).flatMap(this.file)
+    return Watch.all(...roots)
+      .tap(path => {
+        console.log(chalk.yellow("Building:"), path)
+      })
+      .flatMap(this.file)
   },
 
   project() {
@@ -50,9 +54,7 @@ export default Precursor.clone.def({
       .map(source => ({ path, source }))
       .flatMap(Compile.module)
       .tap(this.write)
-      .tap(({ path }) => {
-        System.log(`${chalk.green("Built")}: ${path}`)
-      })
+      .tap(({ path }) => System.log(chalk.green("   Built:"), path))
       .tapErrors(System.report)
   },
 

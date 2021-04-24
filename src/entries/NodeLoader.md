@@ -17,6 +17,7 @@ const root = process.cwd()
 
 ```mjs
 export async function resolve(spec, { conditions, parentURL }, defaultResolve) {
+  spec = spec.replace(/\?.+$/, "")
   const parent = parentURL && dirname(new URL(parentURL).pathname)
   const path = (await Res.realPathFor(spec, parent)) || spec
 

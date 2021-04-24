@@ -42,7 +42,7 @@ def.call(Kefir, {
   name: "Stream",
 
   isStream(v) {
-    return v instanceof Kefir.Stream
+    return v instanceof Kefir.Observable
   },
 
   make(fn) {
@@ -103,16 +103,22 @@ export default Stream
 
 let p = Stream.Observable.prototype
 
-p.tap.test?.(async ({ eq }) => {
-  let s1 = Stream.constant(1).tap(x => eq(x, 1))
-  eq(await s1, 1)
-  eq(await s1.tap(x => eq(x, 1)), 1)
-})
-
 Stream.deep.test?.(async ({ eq }) => {
   eq(await Stream.deep(2), 2)
   eq(await Stream.deep([2, 3]), 3)
   eq(await Stream.deep(Promise.resolve(4)), 4)
+})
+
+Stream.isStream.test?.(({ eq }) => {
+  eq(Stream.isStream({}), false)
+  eq(Stream.isStream(Stream.never()), true)
+  eq(Stream.isStream(Stream.stream(e => e.end())), true)
+})
+
+p.tap.test?.(async ({ eq }) => {
+  let s1 = Stream.constant(1).tap(x => eq(x, 1))
+  eq(await s1, 1)
+  eq(await s1.tap(x => eq(x, 1)), 1)
 })
 
 p.awaitValues.test?.(async ({ eq }) => {
