@@ -7,11 +7,12 @@ program.command("watch").description("Build files that change.").action(main)
 
 async function main() {
   try {
-    await Build.watch().tap(({ path }) => {
+    await Build.watch().tap(async ({ path }) => {
       if (!path.endsWith(".mjs")) return
       path = path.replace(/^.+src\//, "").replace(/\.mjs$/, "")
 
-      testModule(path)
+      await testModule(path)
+      console.log()
     })
   } catch (err) {
     System.report(err)

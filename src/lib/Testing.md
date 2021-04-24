@@ -87,17 +87,11 @@ export async function runAll() {
 }
 
 export async function runTestsFor(name) {
+  console.log("\n" + name)
   for (const entry of cases[name] ?? []) await runTest(entry)
 }
 
-let previousFilename = ""
-
 export async function runTest({ filename, subject, fn }) {
-  if (filename != previousFilename) {
-    console.log("\n" + filename)
-    previousFilename = filename
-  }
-
   let name = subject.name || subject
   name = name.replace(/^bound /, "")
 

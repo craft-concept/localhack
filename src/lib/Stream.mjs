@@ -69,11 +69,11 @@ def.call(Kefir, {
     if (typeof x == "object") {
       if (x instanceof Map) x = x.values()
 
+      if (Stream.isStream(x)) return x.flatMap(Stream.deep)
       if (Symbol.iterator in x) return Stream.iterate(x).flatMap(Stream.deep)
       if (Symbol.asyncIterator in x)
         return Stream.fromAsync(x).flatMap(Stream.deep)
       if (Promise.is(x)) return Stream.fromPromise(x).flatMap(Stream.deep)
-      if (Stream.isStream(x)) return x.flatMap(Stream.deep)
     }
 
     return Stream.constant(x)
@@ -86,7 +86,6 @@ def.call(Kefir, {
       } catch (err) {
         emitter.error(err)
       }
-
       emitter.end()
     })
   },
