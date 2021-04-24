@@ -1,8 +1,8 @@
+import Yaml from "yaml"
 import Precursor from "lib/Precursor"
 import { Enum } from "lib/Enum"
 import { T, matchInputs } from "lib/patterns"
 import { fnWith } from "lib/fns"
-import Yaml from "yaml"
 
 export { T }
 

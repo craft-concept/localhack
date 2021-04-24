@@ -1,6 +1,6 @@
 import fs from "fs"
 import fp from "fs/promises"
-import { dirname } from "path"
+import { dirname, extname } from "path"
 
 import Struct from "lib/Struct"
 import * as Project from "lib/Project"
@@ -10,6 +10,10 @@ export default class File extends Struct {
 
   static at(path) {
     return new this({ path })
+  }
+
+  get ext() {
+    return extname(this.path)
   }
 
   get absolutePath() {
