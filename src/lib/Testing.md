@@ -87,8 +87,9 @@ export async function runAll() {
 }
 
 export async function runTestsFor(name) {
+  if (!cases[name]) return
   console.log("\n" + name)
-  for (const entry of cases[name] ?? []) await runTest(entry)
+  for (const entry of cases[name]) await runTest(entry)
 }
 
 export async function runTest({ filename, subject, fn }) {
