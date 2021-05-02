@@ -1,3 +1,6 @@
+# Precursor
+
+```mjs
 export function assignFnName(fn, name, namespace) {
   if (typeof fn != "function") return fn
   if (namespace) name = `${namespace}_${name}`
@@ -14,6 +17,26 @@ export function preBindFunctions(desc, name) {
     get() {
       return fn.bind(this)
     },
+  }
+}
+
+class Precursor {
+  constructor(target) {
+    this.target = target
+    target.precursor = this
+  }
+
+  def(defs) {
+    let descriptors = Object.getOwnPropertyDescriptors(defs)
+
+    for (let name in descriptors) {
+      let desc = preBindFunctions.call(this, descriptors[name], name)
+      if ("value" in desc) desc.writable = true
+      desc.configurable = true
+      Object.defineProperty(this, name, desc)
+    }
+
+    return this
   }
 }
 
@@ -121,3 +144,4 @@ export default def
       eq(p3.depth, 3)
     })
   })
+```

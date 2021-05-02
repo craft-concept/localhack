@@ -1,11 +1,11 @@
-import Kefir from "kefir"
-
-import Precursor from "lib/Precursor"
+import Stream from "lib/Stream"
+import Precursor, { tap } from "lib/Precursor"
 import { match } from "lib/patterns"
 
 export default Precursor.clone
   .def({
     name: "Router",
+
     push(...msgs) {
       this.queue.push(...msgs)
       return this
@@ -17,15 +17,19 @@ export default Precursor.clone
     },
 
     select(...pattern) {
-      return this.messages.filter(match(env))
+      let next = this.clone.def({
+        messages: this.messages.filter(match(pattern)),
+      })
+
+      return next
     },
   })
   .lazy({
     queue: () => [],
     messages() {
-      return Kefir.stream(emitter => {
+      return Stream.stream(emitter => {
         this.push = (...msgs) => {
-          for (let msg of msgs) emitter.emit(msg)
+          for (let msg of msgs) emitter.value(msg)
           return this
         }
 

@@ -34,3 +34,10 @@ export default Router.clone
       eq(msg, { to: "@me", from: "@me", body: "hello" })
     })
   })
+
+Mail.lazy({
+  inbox: m => m.unfiled.select({ to: "@me" }),
+  unfiled() {
+    return this.select({ tag: null })
+  },
+})

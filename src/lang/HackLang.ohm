@@ -1,0 +1,30 @@
+HackLang {
+
+	Object = listOf<Statement, sep>
+
+    Statement
+    	= Spec ":" Expression
+
+    Spec = ident | Invoke
+
+    Invoke = ident listOf<ident, " ">
+
+    Expression
+    = ident
+    | literal
+
+    literal = string | number+
+
+    string = "\"" any+ "\""
+
+    number = "0".."9"
+
+    ident = word+
+
+    word
+    	= alnum
+	    | "_"
+
+	sep
+		= "," | "\n"
+}
