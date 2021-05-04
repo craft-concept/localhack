@@ -33,10 +33,23 @@ export let Pipeline = Precursor.new()
   })
   .def({
     on(name, ...inputs) {
-      let tx = Transformer.new({ name, inputs })
+      this.focus = { name, inputs }
       this.registry[name] ??= []
-      this.registry[name].push(tx)
-      return tx
+      this.registry[name].push(this.focus)
+
+      this.define(name)
+
+      return this
+    },
+
+    when(shape) {},
+
+    define(name) {
+      if (name in this) return
+
+      this.def({
+        [name](...args) {},
+      })
     },
   })
 

@@ -31,10 +31,15 @@ export const falsy = (actual, message) => {
 }
 
 export const throws = (err, fn) => {
+  if (!fn) {
+    fn = err
+    err = Error
+  }
+
   try {
     fn()
   } catch (e) {
-    if (e instanceof err) return log(dot)
+    if (e === err || e instanceof err) return log(dot)
     throw e
   }
 
@@ -70,7 +75,8 @@ export function test(subject, fn) {
 }
 
 export async function testModule(mod) {
-  await import(`${mod}?break=${Math.random()}`).catch(console.error)
+  // await import(`${mod}?break=${Math.random()}`).catch(console.error)
+  await import(mod).catch(console.error)
 
   let Res = await import("lib/Resolution")
   let Project = await import("lib/project")
@@ -87,7 +93,10 @@ export async function runAll() {
 }
 
 export async function runTestsFor(name) {
-  if (!cases[name]) return
+  if (!cases[name]) {
+    console.log(`No test cases for ${name}`)
+    return
+  }
   console.log("\n" + name)
   for (const entry of cases[name]) await runTest(entry)
 }
