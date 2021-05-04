@@ -1,0 +1,9 @@
+CREATE TABLE Aliases
+IF NOT EXISTS (
+  aliasId INTEGER PRIMARY KEY,
+  key TEXT NOT NULL,
+  hash TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX Aliases_key
+ON Archive (key);

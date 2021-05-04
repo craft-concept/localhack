@@ -6,7 +6,7 @@ import File from "lib/File"
 /**
  * Represents the stack of files that exist at a path.
  */
-export default Precursor.clone
+export let Assets = Precursor.clone
   .def({
     name: "Asset",
 
@@ -21,3 +21,5 @@ export default Precursor.clone
   .lazy({
     files() {},
   })
+
+export default Assets

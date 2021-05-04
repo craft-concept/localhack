@@ -6,70 +6,72 @@ import { fnWith } from "lib/fns"
 
 export { T }
 
-export default Precursor.clone.def({
-  registry: {},
-  shapes: {},
+export default Precursor.clone
+  .lazy({
+    registry: () => ({}),
+    shapes: () => ({}),
+  })
+  .def({
+    shape(type, pattern) {
+      this.define(type)
 
-  shape(type, pattern) {
-    this.define(type)
+      this.shapes[type] ??= []
+      if (!this.shapes[type].includes(pattern)) this.shapes[type].push(pattern)
+      return this
+    },
 
-    this.shapes[type] ??= []
-    if (!this.shapes[type].includes(pattern)) this.shapes[type].push(pattern)
-    return this
-  },
+    type(typ) {
+      return TranslateType.new(this, typ)
+    },
 
-  register(type, pattern, fn) {
-    this.define(type)
+    register(type, pattern, fn) {
+      this.define(type)
 
-    if (!fn) return new Translator(type)
-    return this.add(type, [pattern], fn)
-  },
+      return this.add(type, [pattern], fn)
+    },
 
-  add(type, inputs, fn) {
-    fn = fnWith({ inputs, name: fn.name || `unnamed_${type}` }, fn)
+    add(type, inputs, fn) {
+      fn = fnWith({ inputs, name: fn.name || `unnamed_${type}` }, fn)
 
-    this.registry[type] ??= []
-    this.registry[type].unshift(fn)
-    return this
-  },
+      this.registry[type] ??= []
+      this.registry[type].unshift(fn)
+      return this
+    },
 
-  to(type, ...inputs) {
-    this.registry[type] ??= []
+    to(type, ...inputs) {
+      this.registry[type] ??= []
 
-    return Enum.gen(
-      function* translations() {
-        for (const fn of this.registry[type]) {
-          if (matchInputs(fn, inputs)) {
-            const res = fn(...inputs)
-            if (res != null) yield res
+      return Enum.gen(
+        function* translations() {
+          for (const fn of this.registry[type]) {
+            if (matchInputs(fn, inputs)) {
+              const res = fn(...inputs)
+              if (res != null) yield res
+            }
           }
-        }
-      }.bind(this),
-    )
+        }.bind(this),
+      )
+    },
+
+    define(name) {
+      if (this[name]) return
+
+      this[name] = fnWith({ name }, (item, ...rest) =>
+        this.to(name, item, ...rest),
+      )
+    },
+  })
+
+export let TranslateType = Precursor.clone.def({
+  init(translate, type) {
+    this.assign({ translate, type })
   },
 
-  define(name) {
-    if (this[name]) return
+  accept(...inputs) {
+    let fn = inputs.pop()
+    if (typeof fn != "function")
+      throw new Error("Missing fn in: .accept(...inputs, fn)")
 
-    this[name] = fnWith({ name }, (item, ...rest) =>
-      this.to(name, item, ...rest),
-    )
+    this.translate.add(this.type, inputs, fn)
   },
 })
-
-export class Translator {
-  constructor(type) {
-    this.type = type
-  }
-
-  accepts(...inputs) {
-    this._accepts = inputs
-    return this
-  }
-
-  then(fn) {
-    this._fn = fn
-    Translate.add(this.type, this._accepts[0], fn)
-    return this
-  }
-}

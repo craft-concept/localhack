@@ -7,8 +7,15 @@ export let Objects = Precursor.clone
     },
   })
   .def({
+    async execute() {},
+
+    change(fn) {
+      // Todo: check mutability before cloning
+      return this.clone.tap(fn)
+    },
+
     where(attrs) {
-      return this.clone.tap(x => x.assignQuery(attrs))
+      return this.change(x => x.assignQuery(attrs))
     },
 
     assignQuery(attrs) {
@@ -19,5 +26,22 @@ export let Objects = Precursor.clone
       this.query[key] = value
     },
   })
+  .promise(th => th.execute(th))
 
 export default Objects
+
+export class RequiredCallError extends Error {
+  constructor(methodName, ...exampleArguments) {
+    super()
+    this.methodName = methodName
+    this.exampleArguments = exampleArguments
+
+    this.message = `Missing required call: ${this.renderExample()}`
+  }
+
+  renderExample() {
+    let method = this.methodName
+    let args = this.exampleArguments.map(JSON.stringify).join(", ")
+    return `.${this.methodName}(${args})`
+  }
+}

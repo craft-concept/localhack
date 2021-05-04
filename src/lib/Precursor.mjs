@@ -45,12 +45,22 @@ export default def
     name: "Precursor",
     def,
 
+    init(...inputs) {
+      return this.assign(...inputs)
+    },
+
+    new(...inputs) {
+      let clone = this.clone
+      let result = clone.init(...inputs)
+      return typeof result == "undefined" ? clone : result
+    },
+
     get precursor() {
       return Object.getPrototypeOf(this)
     },
 
-    assign(props) {
-      Object.assign(this, props)
+    assign(...props) {
+      Object.assign(this, ...props)
       return this
     },
 
@@ -69,6 +79,32 @@ export default def
       }
 
       return this
+    },
+
+    setters(desc) {
+      for (let name in desc) {
+        let key = desc[name]
+        if (typeof key == "string") {
+          this.def({
+            [name](x) {
+              return this.assign({ [key]: x })
+            },
+          })
+        } else if (typeof key == "function") {
+          this.def({
+            [name](...xs) {
+              key.apply(this, xs)
+              return this
+            },
+          })
+        } else {
+          this.def({
+            [name](...xs) {
+              return this.assign({ [key[0]]: xs })
+            },
+          })
+        }
+      }
     },
 
     tap(fn) {
