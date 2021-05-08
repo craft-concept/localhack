@@ -105,6 +105,7 @@ export default def
           })
         }
       }
+      return this
     },
 
     tap(fn) {
