@@ -12,19 +12,19 @@ export const T = {
   Boolean: { __type: "boolean" },
 
   Tup: (...rest) => rest,
-  Array: item => [item],
+  Array: (item = T.Any) => [item],
   OneOf: (...opts) => ({ __type: "OneOf", opts }),
 
-  Many: item => T.OneOf(item, T.Array(item)),
+  Many: (item = T.Any) => T.OneOf(item, T.Array(item)),
 
-  Enum: item => T.OneOf(item, T.Iterable(item)),
+  Enum: (item = T.Any) => T.OneOf(item, T.Iterable(item)),
 
   Function: (...inputs) => ({
     __type: "function",
     inputs,
   }),
 
-  Maybe: item => T.OneOf(T.Nil, item),
+  Maybe: (item = T.Any) => T.OneOf(T.Nil, item),
 
   Iterable: pattern => ({ __type: "iterable", pattern }),
 
@@ -272,3 +272,20 @@ test(guard, ({ eq, throws }) => {
   eq(add.with(1, "hi"), null)
   throws(TypeError, () => add.ensure("", 1))
 })
+
+export function compare(a, b) {
+  if (a === b) return 0
+  if (typeof a != typeof b) return 0
+}
+
+export let equals = walk((a, b, recur) => {
+  if (a === b) return true
+  if (typeof a != typeof b) return false
+  return recur(a, b)
+})
+
+function walk(fn) {
+  function recur(a, b) {
+    if (a === b) return fn(a, b, recur)
+  }
+}

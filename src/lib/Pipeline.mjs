@@ -1,4 +1,5 @@
 import Precursor from "lib/Precursor"
+import Dyn from "lib/Dyn"
 
 export let Transformer = Precursor.new()
   .setters({
@@ -17,52 +18,93 @@ export let Transformer = Precursor.new()
     },
   })
 
-Transformer.new.test?.(({ eq }) => {
-  let tx = P.on("append", String)
-    .when(String)
-    .map((self, str) => self + str)
-
-  eq
-})
-
-export let Pipeline = Precursor.new()
+export let EmptyPipeline = Precursor.new()
   .lazy({
-    registry() {
-      return {}
-    },
+    _: () => ({}),
+    steps: () => [],
+    methods: () => ({}),
   })
   .def({
-    on(name, ...inputs) {
-      this.focus = { name, inputs }
-      this.registry[name] ??= []
-      this.registry[name].push(this.focus)
+    name: "EmptyPipeline",
+    init(name) {
+      if (name) this.name = name
+    },
 
-      this.define(name)
+    define(name) {
+      if (this[name]) return
 
+      this.methods[name] ??= this.new(`${this.name}_${name}`)
+
+      this.def({
+        [name](...args) {
+          return this.step(name, ...args)
+        },
+      })
+    },
+
+    step(name, ...args) {
+      this.steps.push([name, ...args])
       return this
     },
 
-    when(shape) {},
+    apply(input, args) {
+      let value = input
+      for (let [name, ...args] of this.steps) {
+        value = this.methods[name].apply(value, args)
+      }
+      return value
+    },
 
-    define(name) {
-      if (name in this) return
+    // on(shape, name, ...inputs) {
+    //   this.define(name)
+    //   this[name].accept(shape, ...inputs)
+    //   return this
+    // },
 
-      this.def({
-        [name](...args) {},
-      })
+    on(name, fn) {
+      this.define(name)
+      if (typeof fn == "function") return fn(this.methods[name])
+      return this.methods[name]
     },
   })
 
-export default Pipeline
+EmptyPipeline.step.test?.(({ eq }) => {
+  let p = EmptyPipeline.new("TestPipeline")
 
-Pipeline.new.test?.(({ eq }) => {
-  let p = Pipeline.new()
+  p.step("a", 1).step("b", 2, 3)
 
-  let tx = P.on("append", String)
-    .when(String)
-    .map((self, str) => self + str)
+  eq(p.steps, [
+    ["a", 1],
+    ["b", 2, 3],
+  ])
 
-  p.on("uppercase")
-    .when(String)
-    .map(str => str.toUpperCase())
+  p.method("on")
+    .inputs(String, T.Rest())
+    .expand((P, name, ...inputs) => P.method(name).inputs(...inputs))
+
+  p.on("add", Number).expand((_, n) => _.perform(sum => sum + n))
+
+  p.on("")
 })
+
+export let Pipeline = EmptyPipeline.tap(EP => {
+  EP.on("flatMap", Function).perform(_ => {})
+
+  EP.on("map", Function).expand((_, fn) => _.flatMap(x => [fn(x)]))
+  EP.on("map", Function).flatMap(x => [fn(x)]) // not able to see inputs
+})
+// .when({ map: Function }).on(
+//   "map",
+//   Function,
+//   (arr, fn) => arr.map(fn),
+// )
+
+// export default Pipeline
+
+// Pipeline.new.test?.(({ eq }) => {
+//   let p = Pipeline.new("MyStringChanges")
+
+//   p.when(String)
+//   p.on("append").accept(String, p => p.map((self, str) => self + str))
+//   p.on("uppercase").accept(p => p.map(str => str.toUpperCase()))
+// })

@@ -1,6 +1,11 @@
 import fg from "fast-glob"
+import Pipeline, { T } from "lib/Pipeline"
 
-export default Pipeline.new("Build").of(InputGlobs)
+Build.files("src/*").modified().read()
+
+export default Pipeline.new("Build").on("files", files =>
+  files.accept(T.Rest(String), (_, ...strs) => _.push(strs.map())),
+)
 
 export let InputGlobs = Queue.new("InputGlobs").accepts(String)
 
