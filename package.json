@@ -18,6 +18,7 @@
     "./*": "./dist/*.mjs"
   },
   "scripts": {
+    "hack": "./dist/cli.mjs",
     "clean": "rm -r .hack/build/*",
     "test": "NODE_ENV=test .hack/build/src/entries/cli.mjs test",
     "cli": ".hack/build/src/entries/cli.mjs",
