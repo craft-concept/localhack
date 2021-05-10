@@ -38,7 +38,9 @@ export function def(defs) {
  * - Make `.immutable` switch that prevents assignments without clone
  * - `.mutate(block)` for mutating
  */
-export let Precursor = {}
+export function Precursor(...args) {
+  return this.invoke(...args)
+}
 
 export default def
   .call(Precursor, {
@@ -114,7 +116,11 @@ export default def
     },
 
     get clone() {
-      return Object.create(this)
+      function other(...args) {
+        return this.invoke(...args)
+      }
+      delete other.name
+      return Object.setPrototypeOf(other, this)
     },
 
     promise(fn) {
