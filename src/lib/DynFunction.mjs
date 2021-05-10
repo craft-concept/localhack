@@ -1,3 +1,4 @@
+import Precursor from "lib/Precursor"
 import { fnWith } from "lib/fns"
 import { T, match } from "lib/patterns"
 
@@ -8,7 +9,7 @@ export class MissingPatternError extends Error {
     super(
       `Missing pattern for ${name}.call(${this_}, ${args
         .map(JSON.stringify)
-        .join(", ")})`,
+        .join(", ")})`
     )
     this.name = name
     this.this = this_
@@ -61,7 +62,7 @@ export default function Dyn(name) {
         return self
       },
     },
-    self,
+    self
   )
 }
 

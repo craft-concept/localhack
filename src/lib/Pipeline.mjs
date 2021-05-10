@@ -1,5 +1,6 @@
+import Stream from "l"
 import Precursor from "lib/Precursor"
-import Dyn from "lib/Dyn"
+import Dyn from "lib/DynFunction"
 
 export let Transformer = Precursor.new()
   .setters({
