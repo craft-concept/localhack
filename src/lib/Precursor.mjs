@@ -162,5 +162,6 @@ export default def
       eq(p.depth, 1)
       eq(p2.depth, 2)
       eq(p3.depth, 3)
+      eq(p3.precursor, p2)
     })
   })

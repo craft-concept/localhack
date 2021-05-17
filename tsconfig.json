@@ -11,7 +11,11 @@
     "jsx": "react",
     "jsxFactory": "h",
     "outDir": ".hack/tsc",
-    "plugins": [{ "name": "typescript-lit-html-plugin" }]
+    "plugins": [{ "name": "typescript-lit-html-plugin" }],
+    "baseUrl": "src"
+    // "paths": {
+    //   "*": ["src/*"]
+    // }
   },
   "compileOnSave": false,
   "include": ["src"],
