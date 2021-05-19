@@ -39,7 +39,9 @@ export function def(defs) {
  * - `.mutate(block)` for mutating
  */
 export function Precursor(...args) {
-  return this.invoke(...args)
+  return this instanceof Precursor
+    ? Precursor.new(...args)
+    : this.invoke(...args)
 }
 
 export default def
@@ -117,7 +119,7 @@ export default def
 
     get clone() {
       function other(...args) {
-        return this.invoke(...args)
+        return this instanceof other ? other.new(...args) : this.invoke(...args)
       }
       delete other.name
       return Object.setPrototypeOf(other, this)
