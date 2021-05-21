@@ -8,6 +8,10 @@ export class OnDisk {
     return `${homedir}/.hack/Archive/`
   }
 
+  async mkRoot() {
+    return fp.mkdir(this.root, { recursive: true })
+  }
+
   at(path) {
     return join(this.root, path)
   }
@@ -16,10 +20,23 @@ export class OnDisk {
     return fp.symlink(this.at(path), this.at(alias), "file")
   }
 
+  async has(path) {
+    try {
+      let stats = await this.stat(path)
+      return stats.size > 0 && !(stats.mode & 0o222)
+    } catch (err) {}
+
+    return false
+  }
+
+  async stat(path) {
+    return fp.stat(this.at(path))
+  }
+
   async write(content) {
     let hash = Hash.string(content)
     let path = this.at(hash)
-    await fp.mkdir(this.root, { recursive: true })
+    await this.mkRoot()
 
     try {
       await fp.writeFile(this.at(hash), content, {
@@ -40,6 +57,19 @@ export class OnDisk {
   async purge(path) {
     return fp.unlink(this.at(path))
   }
+
+  async ingest(path) {
+    await fp.chmod(path, 0o444)
+    let hash = Hash.buffer(await fp.readFile(path))
+
+    if (!(await this.has(hash))) {
+      await this.mkRoot()
+      await fp.move(path, this.at(hash))
+    }
+
+    await fp.symlink(this.at(hash), path, "file")
+    return hash
+  }
 }
 
 export default new OnDisk()
@@ -50,6 +80,7 @@ OnDisk.test?.(async ({ eq, rejects }) => {
   let hash = await archive.write("Hello, world.\n")
   eq(hash, "1ab1a2bb8502820a83881a5b66910b819121bafe336d76374637aa4ea7ba2616")
 
+  eq(await archive.has(hash), true)
   eq(await archive.read(hash), "Hello, world.\n")
 
   let randContent = String(Math.random())

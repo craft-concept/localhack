@@ -6,8 +6,12 @@ export default class Hash {
   }
 
   static string(str) {
+    return this.buffer(str)
+  }
+
+  static buffer(buff) {
     let hash = createHash("sha256")
-    hash.update(str)
+    hash.update(buff)
     return hash.digest("hex")
   }
 }
