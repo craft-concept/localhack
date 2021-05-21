@@ -26,7 +26,9 @@ async function main(paths, { keep }) {
 
       let full = resolve(path)
       let rel = relative(process.cwd(), full)
-      let hashP = keep ? OnDisk.write(fp.readFile(full)) : OnDisk.ingest(full)
+      let hashP = keep
+        ? OnDisk.write(await fp.readFile(full))
+        : OnDisk.ingest(full)
 
       proms.push(hashP.then(hash => System.log(`${full}: ${hash}`)))
     }

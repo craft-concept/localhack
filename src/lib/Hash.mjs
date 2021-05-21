@@ -1,4 +1,5 @@
 import { createHash } from "crypto"
+import bs58 from "bs58check"
 
 export default class Hash {
   static object(obj) {
@@ -10,8 +11,7 @@ export default class Hash {
   }
 
   static buffer(buff) {
-    let hash = createHash("sha256")
-    hash.update(buff)
-    return hash.digest("hex")
+    let hash = createHash("sha256").update(buff).digest()
+    return bs58.encode(hash)
   }
 }

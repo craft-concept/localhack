@@ -62,9 +62,11 @@ export class OnDisk {
     await fp.chmod(path, 0o444)
     let hash = Hash.buffer(await fp.readFile(path))
 
-    if (!(await this.has(hash))) {
+    if (await this.has(hash)) {
+      await fp.unlink(path)
+    } else {
       await this.mkRoot()
-      await fp.move(path, this.at(hash))
+      await fp.rename(path, this.at(hash))
     }
 
     await fp.symlink(this.at(hash), path, "file")
@@ -78,7 +80,7 @@ OnDisk.test?.(async ({ eq, rejects }) => {
   let archive = new OnDisk()
 
   let hash = await archive.write("Hello, world.\n")
-  eq(hash, "1ab1a2bb8502820a83881a5b66910b819121bafe336d76374637aa4ea7ba2616")
+  eq(hash, "CkrrcgnhJZ1YkE7BDcqUWrnDyAaBiVUYxakmpdCV7FrE5T7ok")
 
   eq(await archive.has(hash), true)
   eq(await archive.read(hash), "Hello, world.\n")
