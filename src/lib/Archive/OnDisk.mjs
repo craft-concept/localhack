@@ -1,5 +1,6 @@
 import { join, dirname } from "path"
 import { homedir } from "os"
+import fs from "fs"
 import fp from "fs/promises"
 import Hash from "lib/Hash"
 
@@ -18,6 +19,11 @@ export class OnDisk {
 
   async alias(alias, path) {
     return fp.symlink(this.at(path), this.at(alias), "file")
+  }
+
+  async find(path) {
+    let real = await fp.realpath(path)
+    return real.replace(this.root, "")
   }
 
   async has(path) {
@@ -52,6 +58,10 @@ export class OnDisk {
 
   async read(path) {
     return fp.readFile(this.at(path), "utf8")
+  }
+
+  stream(path) {
+    return fs.createReadStream(this.at(path))
   }
 
   async purge(path) {

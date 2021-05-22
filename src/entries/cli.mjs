@@ -19,6 +19,7 @@ import "cmd/repl"
 import "cmd/to"
 import "cmd/eval"
 import "cmd/http"
+import "cmd/hash"
 import "cmd/ingest"
 
 commander.program

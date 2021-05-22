@@ -20,6 +20,7 @@ export default class Chunking {
         target,
         0, // targetOffset
         !"FLAGS",
+        hashFn,
         (err, sourceOffset, targetOffset) => {
           if (err) return rej(err)
 
@@ -28,6 +29,12 @@ export default class Chunking {
       )
     })
   }
+}
+
+function hashFn(source, sourceOffset, sourceSize, target, targetOffset) {
+  var digest = crypto.createHash("SHA256")
+  digest.update(source.slice(sourceOffset, sourceOffset + sourceSize))
+  digest.digest().copy(target, targetOffset)
 }
 
 Chunking.test?.(({ eq }) => {

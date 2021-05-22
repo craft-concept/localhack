@@ -164,6 +164,7 @@ function deduplicate(
   target,
   targetOffset,
   flags,
+  hash,
   callback
 ) {
   if (callback === undefined) {
@@ -246,18 +247,6 @@ function deduplicate(
       callback(undefined, sourceOffset, targetOffset);
     }
   );
-}
-
-function hash(
-  source,
-  sourceOffset,
-  sourceSize,
-  target,
-  targetOffset
-) {
-  var digest = crypto.createHash('SHA256');
-  digest.update(source.slice(sourceOffset, sourceOffset + sourceSize));
-  digest.digest().copy(target, targetOffset);
 }
 
 function logarithm2(integer) {

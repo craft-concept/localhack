@@ -14,4 +14,19 @@ export default class Hash {
     let hash = createHash("sha256").update(buff).digest()
     return bs58.encode(hash)
   }
+
+  static async stream(strm) {
+    let hash = createHash("sha256")
+
+    return new Promise((res, rej) => {
+      strm
+        .pipe(hash)
+        .on("error", rej)
+        .on("readable", () => {
+          let data = hash.read()
+          if (!data) return rej(new Error("No hash found."))
+          res(bs58.encode(data))
+        })
+    })
+  }
 }
