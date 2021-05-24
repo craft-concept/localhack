@@ -19,7 +19,7 @@ export default class Bundle {
       prom.push(Build.write(entry))
     }
 
-    await Promise.all(prom)
+    return Promise.all(prom)
   }
 
   static async *entries(entryPoints) {
@@ -32,15 +32,24 @@ export default class Bundle {
       format: "esm",
       outExtension: { ".js": ".mjs" },
       external: [
+        "@textlint/markdown-to-ast",
+        "better-sqlite3",
+        "bs58check",
         "chalk",
         "child_process",
+        "chokidar",
+        "clipboardy",
         "commander",
+        "copyfiles",
         "electron",
         "esbuild",
         "fast-glob",
         "immer",
-        "@textlint/markdown-to-ast",
+        "isolated-vm",
+        "kefir",
         "react",
+        "ohm-js",
+        "smtp-server",
         "uuid",
         "vscode",
         "yaml",
