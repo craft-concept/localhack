@@ -20,7 +20,7 @@ import "cmd/to"
 import "cmd/eval"
 import "cmd/http"
 import "cmd/hash"
-import "cmd/ingest"
+import "cmd/archive"
 
 commander.program
   .name("hack")

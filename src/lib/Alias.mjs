@@ -4,9 +4,9 @@ import fs from "fs"
 import fp from "fs/promises"
 import Hash from "lib/Hash"
 
-export class OnDisk {
+export class Alias {
   get root() {
-    return `${homedir}/.hack/Archive/`
+    return `${homedir}/.hack/Alias/`
   }
 
   async mkRoot() {
@@ -84,10 +84,10 @@ export class OnDisk {
   }
 }
 
-export default new OnDisk()
+export default new Alias()
 
-OnDisk.test?.(async ({ eq, rejects }) => {
-  let archive = new OnDisk()
+Alias.test?.(async ({ eq, rejects }) => {
+  let archive = new Alias()
 
   let hash = await archive.write("Hello, world.\n")
   eq(hash, "CkrrcgnhJZ1YkE7BDcqUWrnDyAaBiVUYxakmpdCV7FrE5T7ok")
