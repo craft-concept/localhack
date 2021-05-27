@@ -21,6 +21,7 @@ import "cmd/eval"
 import "cmd/http"
 import "cmd/hash"
 import "cmd/archive"
+import "cmd/read"
 
 commander.program
   .name("hack")
